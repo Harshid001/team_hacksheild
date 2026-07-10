@@ -1,5 +1,8 @@
 {
   "name": "mf-voice-advisor-workspace",
   "private": true,
-  "workspaces": ["apps/*","packages/*"]
+  "workspaces": ["apps/*","packages/*"],
+  "scripts": {
+    "build": "npm run build --workspace=apps/web"
+  }
 }
