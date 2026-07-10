@@ -5,9 +5,10 @@ interface ConversationBubbleProps {
   type: 'bot' | 'user';
   text: string;
   isLatest?: boolean;
+  isStreaming?: boolean;
 }
 
-export function ConversationBubble({ type, text, isLatest }: ConversationBubbleProps) {
+export function ConversationBubble({ type, text, isLatest, isStreaming }: ConversationBubbleProps) {
   const isBot = type === 'bot';
 
   return (
@@ -35,6 +36,10 @@ export function ConversationBubble({ type, text, isLatest }: ConversationBubbleP
         )}
       >
         {text}
+        {/* Streaming cursor */}
+        {isStreaming && (
+          <span className="inline-block w-2 h-5 ml-1 bg-indigo-400 animate-pulse rounded-sm align-middle" />
+        )}
       </div>
 
       {/* User Avatar (Right) */}

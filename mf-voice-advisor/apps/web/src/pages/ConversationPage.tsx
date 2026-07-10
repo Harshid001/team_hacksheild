@@ -1,49 +1,113 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { startConversation, sendAnswer, getHistory } from '../lib/api';
+import { startChatStream, sendMessageStream, getChatProfile } from '../lib/api';
 import { createSpeechRecognition, isSpeechRecognitionSupported } from '../lib/speechRecognition';
 import { speak, cancelSpeech } from '../lib/speechSynthesis';
 import { ConversationBubble } from '../components/ConversationBubble';
 import { MicButton } from '../components/MicButton';
 import { ListeningIndicator } from '../components/ListeningIndicator';
 import { Send, FileText, Loader2 } from 'lucide-react';
-import type { AnswerData } from 'shared/types';
+
+interface ChatMsg {
+  id: string;
+  type: 'bot' | 'user';
+  text: string;
+  isStreaming?: boolean;
+}
 
 export function ConversationPage() {
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [history, setHistory] = useState<Array<{ id: string; type: 'bot' | 'user'; text: string }>>([]);
+  const [history, setHistory] = useState<ChatMsg[]>([]);
   
   // States
   const [isListening, setIsListening] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(true); // true initially to show loader
+  const [isProcessing, setIsProcessing] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
   const [textInput, setTextInput] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
   
+  // Refs
+  const sessionIdRef = useRef<string | null>(null);
+  const isCompleteRef = useRef<boolean>(false);
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const streamingMsgIdRef = useRef<string | null>(null);
+
+  // Keep refs in sync
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+    isCompleteRef.current = isComplete;
+  }, [sessionId, isComplete]);
 
   // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history, isProcessing]);
 
-  // Init Conversation
+  // Update streaming message text
+  const updateStreamingMsg = useCallback((msgId: string, newText: string) => {
+    setHistory(prev => prev.map(msg => 
+      msg.id === msgId ? { ...msg, text: newText } : msg
+    ));
+  }, []);
+
+  // Finalize streaming message
+  const finalizeStreamingMsg = useCallback((msgId: string, finalText: string) => {
+    setHistory(prev => prev.map(msg => 
+      msg.id === msgId ? { ...msg, text: finalText, isStreaming: false } : msg
+    ));
+    streamingMsgIdRef.current = null;
+  }, []);
+
+  // Check profile completion
+  const checkProfileCompletion = useCallback(async (sid: string) => {
+    try {
+      const profile = await getChatProfile(sid);
+      if (profile.isComplete) {
+        setIsComplete(true);
+      }
+    } catch {
+      // Ignore errors
+    }
+  }, []);
+
+  // Init Conversation — AI generates the greeting via LLM
   useEffect(() => {
     async function init() {
       try {
-        // Try getting an existing session ID from local storage first (optional, useful for dev)
-        // For now, always start fresh:
-        const data = await startConversation();
-        setSessionId(data.sessionId);
-        setHistory([
-          { id: 'start', type: 'bot', text: data.firstQuestion }
-        ]);
-        setIsProcessing(false);
-        // Automatically read first question
-        await speak(data.firstQuestion);
+        const streamingId = `bot-${Date.now()}`;
+        
+        // Add an empty streaming bot message
+        setHistory([{ id: streamingId, type: 'bot', text: '', isStreaming: true }]);
+        streamingMsgIdRef.current = streamingId;
+
+        let accumulatedText = '';
+
+        await startChatStream({
+          onSessionId: (sid) => {
+            setSessionId(sid);
+            sessionIdRef.current = sid;
+          },
+          onToken: (token) => {
+            accumulatedText += token;
+            updateStreamingMsg(streamingId, accumulatedText);
+          },
+          onDone: async (fullMessage) => {
+            finalizeStreamingMsg(streamingId, fullMessage);
+            setIsProcessing(false);
+            // Read the greeting aloud
+            await speak(fullMessage);
+          },
+          onError: (error) => {
+            console.error('Chat start error:', error);
+            finalizeStreamingMsg(streamingId, `Connection error: ${error}`);
+            setIsProcessing(false);
+          },
+        });
       } catch (err) {
-        console.error("Failed to start conversation:", err);
+        console.error('Failed to start chat:', err);
+        setIsProcessing(false);
       }
     }
     init();
@@ -51,15 +115,19 @@ export function ConversationPage() {
     // Setup speech recognition
     if (isSpeechRecognitionSupported()) {
       recognitionRef.current = createSpeechRecognition();
-      recognitionRef.current.onResult = (transcript: string, final: boolean) => {
-        if (final) {
-          handleUserSubmit(transcript);
-          setIsListening(false);
+      recognitionRef.current.onResult = (transcript: string) => {
+        setInterimTranscript(transcript);
+      };
+      
+      recognitionRef.current.onEnd = (lastTranscript: string) => {
+        setIsListening(false);
+        setInterimTranscript('');
+        if (lastTranscript && lastTranscript.trim()) {
+          handleUserSubmit(lastTranscript);
         }
       };
-      recognitionRef.current.onEnd = () => setIsListening(false);
       recognitionRef.current.onError = (err: string) => {
-        console.error("Speech recognition error:", err);
+        console.error('Speech recognition error:', err);
         setIsListening(false);
       };
     }
@@ -76,32 +144,58 @@ export function ConversationPage() {
     if (isListening) {
       recognitionRef.current?.stop();
     } else {
-      cancelSpeech(); // stop bot talking if user interrupts
+      cancelSpeech();
       recognitionRef.current?.start();
       setIsListening(true);
     }
   };
 
   const handleUserSubmit = async (text: string) => {
-    if (!text.trim() || !sessionId || isComplete) return;
+    const currentSessionId = sessionIdRef.current;
+    if (!text.trim() || !currentSessionId) return;
     
-    // Add user message to UI immediately
-    const userMsgId = Date.now().toString();
+    // Add user message
+    const userMsgId = `user-${Date.now()}`;
     setHistory(prev => [...prev, { id: userMsgId, type: 'user', text }]);
     setTextInput('');
     setIsProcessing(true);
 
+    // Add streaming bot message placeholder
+    const botMsgId = `bot-${Date.now()}`;
+    setHistory(prev => [...prev, { id: botMsgId, type: 'bot', text: '', isStreaming: true }]);
+    streamingMsgIdRef.current = botMsgId;
+
+    let accumulatedText = '';
+
     try {
-      const data = await sendAnswer(sessionId, text);
-      
-      setHistory(prev => [...prev, { id: Date.now().toString(), type: 'bot', text: data.nextQuestion }]);
-      setIsComplete(data.isComplete);
-      
-      await speak(data.nextQuestion);
+      await sendMessageStream(currentSessionId, text, {
+        onToken: (token) => {
+          accumulatedText += token;
+          updateStreamingMsg(botMsgId, accumulatedText);
+        },
+        onToolCall: (name, result) => {
+          // Check for profile completion when profile is updated
+          if (name === 'updateUserProfile' && result?.isComplete) {
+            setIsComplete(true);
+          }
+        },
+        onDone: async (fullMessage) => {
+          finalizeStreamingMsg(botMsgId, fullMessage);
+          setIsProcessing(false);
+          // Check profile completion
+          await checkProfileCompletion(currentSessionId);
+          // Read response aloud
+          await speak(fullMessage);
+        },
+        onError: (error) => {
+          console.error('Chat error:', error);
+          finalizeStreamingMsg(botMsgId, `Connection error: ${error}`);
+          setIsProcessing(false);
+        },
+      });
     } catch (err) {
-      console.error("Failed to process answer:", err);
-      setHistory(prev => [...prev, { id: Date.now().toString(), type: 'bot', text: "Sorry, I had trouble processing that. Could you repeat?" }]);
-    } finally {
+      console.error('Failed to send message:', err);
+      finalizeStreamingMsg(botMsgId, 'Failed to get AI response. Please try again.');
       setIsProcessing(false);
     }
   };
@@ -129,13 +223,15 @@ export function ConversationPage() {
               type={msg.type} 
               text={msg.text} 
               isLatest={idx === history.length - 1}
+              isStreaming={msg.isStreaming}
             />
           ))}
-          {isProcessing && !isComplete && (
+          {/* Show loader only when processing and no streaming message visible */}
+          {isProcessing && !streamingMsgIdRef.current && history.length === 0 && (
             <div className="flex justify-start">
               <div className="glass-panel px-6 py-4 rounded-2xl rounded-tl-sm border-l-2 border-indigo-400 flex items-center gap-3 text-indigo-300">
                 <Loader2 size={18} className="animate-spin" />
-                Thinking...
+                Connecting to AI...
               </div>
             </div>
           )}
@@ -162,6 +258,14 @@ export function ConversationPage() {
               {/* Voice Controls */}
               <div className="flex flex-col items-center gap-4">
                 <ListeningIndicator isListening={isListening} />
+                
+                {/* Live Transcript Display */}
+                {isListening && interimTranscript && (
+                  <div className="max-w-xl text-center px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-200 italic shadow-inner animate-in fade-in">
+                    "{interimTranscript}"
+                  </div>
+                )}
+                
                 {isSpeechRecognitionSupported() ? (
                   <MicButton 
                     isListening={isListening} 
@@ -173,7 +277,7 @@ export function ConversationPage() {
                 )}
               </div>
 
-              {/* Text Input Fallback */}
+              {/* Text Input */}
               <form 
                 className="w-full flex gap-3 relative"
                 onSubmit={(e) => { e.preventDefault(); handleUserSubmit(textInput); }}

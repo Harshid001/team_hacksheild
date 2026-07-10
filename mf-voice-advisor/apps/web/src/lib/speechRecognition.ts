@@ -8,7 +8,7 @@ export interface SpeechRecognitionWrapper {
   abort: () => void;
   onResult: (transcript: string, isFinal: boolean) => void;
   onError: (error: string) => void;
-  onEnd: () => void;
+  onEnd: (finalTranscriptText: string) => void;
 }
 
 export function createSpeechRecognition(): SpeechRecognitionWrapper {
@@ -25,9 +25,12 @@ export function createSpeechRecognition(): SpeechRecognitionWrapper {
   
   let finalTranscript = '';
 
+  let currentFullTranscript = '';
+
   const wrapper: SpeechRecognitionWrapper = {
     start: () => {
       finalTranscript = '';
+      currentFullTranscript = '';
       try {
         recognition.start();
       } catch (e) {
@@ -47,12 +50,12 @@ export function createSpeechRecognition(): SpeechRecognitionWrapper {
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
         finalTranscript += event.results[i][0].transcript;
-        wrapper.onResult(finalTranscript, true);
       } else {
         interimTranscript += event.results[i][0].transcript;
-        wrapper.onResult(finalTranscript + interimTranscript, false);
       }
     }
+    currentFullTranscript = finalTranscript + interimTranscript;
+    wrapper.onResult(currentFullTranscript, event.results[event.results.length - 1].isFinal);
   };
 
   recognition.onerror = (event: any) => {
@@ -60,7 +63,7 @@ export function createSpeechRecognition(): SpeechRecognitionWrapper {
   };
 
   recognition.onend = () => {
-    wrapper.onEnd();
+    wrapper.onEnd(currentFullTranscript);
   };
 
   return wrapper;
