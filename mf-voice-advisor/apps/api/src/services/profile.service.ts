@@ -11,6 +11,7 @@
 
 import { UserProfile, IUserProfile } from '../db/models/UserProfile.model';
 import { ConversationSession } from '../db/models/ConversationSession.model';
+import { FinancialProfile } from '../db/models/FinancialProfile';
 import mongoose from 'mongoose';
 
 // ---------------------------------------------------------------------------

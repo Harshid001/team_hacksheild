@@ -91,7 +91,7 @@ router.post('/:sessionId/message', authMiddleware, async (req: AuthRequest, res:
 
   try {
     // Stream the AI response
-    for await (const chunk of streamChatResponse(sessionId, message, userId)) {
+    for await (const chunk of streamChatResponse(sessionId as string, message, userId as string)) {
       res.write(`data: ${JSON.stringify(chunk)}\n\n`);
     }
 

@@ -28,13 +28,12 @@ const FinancialProfileSchema: Schema = new Schema(
 );
 
 // Pre-save hook to determine if profile is complete
-FinancialProfileSchema.pre<IFinancialProfile>('save', function (next) {
+FinancialProfileSchema.pre<IFinancialProfile>('save', async function () {
   if (this.ageGroup && this.timeHorizon && this.monthlyInvestment && this.riskTolerance) {
     this.isComplete = true;
   } else {
     this.isComplete = false;
   }
-  next();
 });
 
 export const FinancialProfile = mongoose.model<IFinancialProfile>('FinancialProfile', FinancialProfileSchema);
