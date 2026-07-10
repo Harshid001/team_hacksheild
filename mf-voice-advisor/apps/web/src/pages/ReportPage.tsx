@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { fetchReport } from '../lib/api'
+import { fetchReport, generateReport } from '../lib/api'
 import type { Report, FundRecommendation } from '../../../../packages/shared/src/types'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import ReportCard from '../components/ReportCard'
@@ -39,7 +39,15 @@ export default function ReportPage() {
     // 2. Fetch/Generate report
     const load = async () => {
       try {
-        const data = await fetchReport(sessionId)
+        let data;
+        try {
+          // First attempt to generate a new report
+          data = await generateReport(sessionId)
+        } catch (genErr: any) {
+          // If generation fails (e.g. report already exists or generated before), try fetching it
+          console.warn('Report generation encountered an error (might already exist), fetching instead:', genErr.message)
+          data = await fetchReport(sessionId)
+        }
         setReport(data)
         // Keep loading visible for at least 3.6s to show all steps to the user
         await new Promise(resolve => setTimeout(resolve, 3600))
@@ -65,14 +73,14 @@ export default function ReportPage() {
 
         <div className="relative z-10 flex flex-col items-center max-w-md text-center">
           <svg className="w-16 h-16 text-teal-400 animate-spin mb-8" viewBox="0 0 24 24" fill="none">
-             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
 
           <h1 className="text-2xl font-display font-semibold mb-6">
             {lang === 'hi' ? "आपके प्रोफाइल का विश्लेषण किया जा रहा है" : "Analyzing your profile"}
           </h1>
-          
+
           <div className="h-12 relative w-full flex justify-center">
             <AnimatePresence mode="wait">
               <motion.p
@@ -168,7 +176,7 @@ export default function ReportPage() {
         <DisclaimerBanner variant="informational" />
 
         {/* Profile Summary */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="bg-navy-800 text-white rounded-2xl p-6 sm:p-8 shadow-card flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left"
         >
