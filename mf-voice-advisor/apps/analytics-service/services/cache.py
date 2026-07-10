@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
-_DB_NAME = os.environ.get("MONGO_DB_NAME", "mf_advisor")
+_DB_NAME = os.environ.get("MONGO_DB_NAME", "mf_voice_advisor")
 _COLLECTION = "fundMetrics"
 
 _client = None
