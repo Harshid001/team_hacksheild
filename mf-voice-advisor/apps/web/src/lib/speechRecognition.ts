@@ -21,7 +21,6 @@ export function createSpeechRecognition(): SpeechRecognitionWrapper {
   const recognition = new SpeechRecognition();
   recognition.continuous = false;
   recognition.interimResults = true;
-  recognition.lang = 'en-IN'; // Indian English
   
   let finalTranscript = '';
 
@@ -33,8 +32,9 @@ export function createSpeechRecognition(): SpeechRecognitionWrapper {
       currentFullTranscript = '';
       try {
         recognition.start();
-      } catch (e) {
+      } catch (e: any) {
         console.error("Speech recognition start error:", e);
+        wrapper.onError(e.message || String(e));
       }
     },
     stop: () => recognition.stop(),
@@ -49,12 +49,12 @@ export function createSpeechRecognition(): SpeechRecognitionWrapper {
     
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript;
+        finalTranscript += event.results[i][0].transcript + ' ';
       } else {
         interimTranscript += event.results[i][0].transcript;
       }
     }
-    currentFullTranscript = finalTranscript + interimTranscript;
+    currentFullTranscript = (finalTranscript + interimTranscript).trim();
     wrapper.onResult(currentFullTranscript, event.results[event.results.length - 1].isFinal);
   };
 

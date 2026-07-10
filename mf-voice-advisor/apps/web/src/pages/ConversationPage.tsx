@@ -25,7 +25,6 @@ export function ConversationPage() {
   const [isProcessing, setIsProcessing] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
   const [textInput, setTextInput] = useState('');
-  const [interimTranscript, setInterimTranscript] = useState('');
   
   // Refs
   const sessionIdRef = useRef<string | null>(null);
@@ -116,12 +115,11 @@ export function ConversationPage() {
     if (isSpeechRecognitionSupported()) {
       recognitionRef.current = createSpeechRecognition();
       recognitionRef.current.onResult = (transcript: string) => {
-        setInterimTranscript(transcript);
+        setTextInput(transcript);
       };
       
       recognitionRef.current.onEnd = (lastTranscript: string) => {
         setIsListening(false);
-        setInterimTranscript('');
         if (lastTranscript && lastTranscript.trim()) {
           handleUserSubmit(lastTranscript);
         }
@@ -259,12 +257,7 @@ export function ConversationPage() {
               <div className="flex flex-col items-center gap-4">
                 <ListeningIndicator isListening={isListening} />
                 
-                {/* Live Transcript Display */}
-                {isListening && interimTranscript && (
-                  <div className="max-w-xl text-center px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-200 italic shadow-inner animate-in fade-in">
-                    "{interimTranscript}"
-                  </div>
-                )}
+                {/* Live Transcript Display removed - it now populates the main input box */}
                 
                 {isSpeechRecognitionSupported() ? (
                   <MicButton 
