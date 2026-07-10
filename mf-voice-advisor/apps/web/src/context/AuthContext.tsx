@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api, { setGlobalAccessToken } from '../lib/axios';
 
 interface User {
   id: string;
   name: string;
   email: string;
+  hasProfile: boolean;
 }
 
 interface AuthContextType {

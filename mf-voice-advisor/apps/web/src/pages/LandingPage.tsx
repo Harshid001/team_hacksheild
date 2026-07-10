@@ -7,8 +7,6 @@ import {
 } from 'recharts'
 import { TRANSLATIONS } from '../lib/translations'
 import { CALC_TRANSLATIONS } from '../lib/calculatorTranslations'
-import { useTranslation } from '../context/TranslationContext'
-import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import ProfileDropdown from '../components/ProfileDropdown'
 

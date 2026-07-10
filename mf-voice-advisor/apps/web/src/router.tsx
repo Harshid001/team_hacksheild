@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { ReactNode } from 'react'
 import { useAuth } from './context/AuthContext'
 import LandingPage       from './pages/LandingPage'
 import DisclaimerPage    from './pages/DisclaimerPage'
@@ -8,7 +9,7 @@ import DemoPage          from './pages/DemoPage'
 import SignupPage        from './pages/SignupPage'
 import OAuthCallback     from './pages/OAuthCallback'
 
-const ProtectedRoute = ({ children, redirectIfHasProfile }: { children: React.ReactNode; redirectIfHasProfile?: string }) => {
+const ProtectedRoute = ({ children, redirectIfHasProfile }: { children: ReactNode; redirectIfHasProfile?: string }) => {
   const { isAuthenticated, isLoading, user } = useAuth()
   
   if (isLoading) {
