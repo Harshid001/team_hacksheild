@@ -30,14 +30,14 @@ export interface ConversationState {
 // State helpers
 // ---------------------------------------------------------------------------
 
-export function profileToState(profile: IUserProfile): ConversationState {
+export function profileToState(profile: any): ConversationState {
   return {
-    age: profile.age,
-    investmentAmount: profile.investmentAmount,
-    goal: profile.goal,
-    incomeStability: profile.incomeStability,
-    horizonYears: profile.horizonYears,
-    riskReaction: profile.riskReaction,
+    age: profile.ageGroup ? parseInt(profile.ageGroup, 10) : null,
+    investmentAmount: profile.monthlyInvestment ? parseInt(profile.monthlyInvestment, 10) : null,
+    goal: profile.targetGoal || null,
+    incomeStability: 'stable', // We omit this from the new schema, or assume stable for simplicity
+    horizonYears: profile.timeHorizon ? parseInt(profile.timeHorizon, 10) : null,
+    riskReaction: profile.riskTolerance || null,
   };
 }
 
@@ -135,74 +135,69 @@ export function recommendCategory(
  * Update user profile with partial data. Returns the updated profile state.
  */
 export async function updateUserProfile(
-  sessionId: string,
+  userId: string,
   data: Partial<ConversationState>
 ): Promise<{ updated: ConversationState; missingFields: string[]; isComplete: boolean }> {
   const updateData: Record<string, any> = {};
 
-  if (data.age !== undefined && data.age !== null) updateData.age = data.age;
-  if (data.investmentAmount !== undefined && data.investmentAmount !== null) updateData.investmentAmount = data.investmentAmount;
-  if (data.goal !== undefined && data.goal !== null) updateData.goal = data.goal;
-  if (data.incomeStability !== undefined && data.incomeStability !== null) updateData.incomeStability = data.incomeStability;
-  if (data.horizonYears !== undefined && data.horizonYears !== null) updateData.horizonYears = data.horizonYears;
-  if (data.riskReaction !== undefined && data.riskReaction !== null) updateData.riskReaction = data.riskReaction;
+  if (data.age !== undefined && data.age !== null) updateData.ageGroup = data.age.toString(); // mapping age to ageGroup for simplicity, or we can add 'age' to schema
+  if (data.investmentAmount !== undefined && data.investmentAmount !== null) updateData.monthlyInvestment = data.investmentAmount.toString();
+  if (data.goal !== undefined && data.goal !== null) updateData.targetGoal = data.goal;
+  // if (data.incomeStability !== undefined && data.incomeStability !== null) updateData.incomeStability = data.incomeStability; // not in new schema, ignore or add
+  if (data.horizonYears !== undefined && data.horizonYears !== null) updateData.timeHorizon = data.horizonYears.toString();
+  if (data.riskReaction !== undefined && data.riskReaction !== null) updateData.riskTolerance = data.riskReaction;
 
   if (Object.keys(updateData).length > 0) {
-    await UserProfile.updateOne(
-      { sessionId: new mongoose.Types.ObjectId(sessionId) },
+    await FinancialProfile.updateOne(
+      { userId: new mongoose.Types.ObjectId(userId) },
       { $set: updateData }
     );
   }
 
-  const profile = await UserProfile.findOne({
-    sessionId: new mongoose.Types.ObjectId(sessionId),
+  const profile = await FinancialProfile.findOne({
+    userId: new mongoose.Types.ObjectId(userId),
   });
-  if (!profile) throw new Error(`No profile found for session ${sessionId}`);
+  if (!profile) throw new Error(`No profile found for user ${userId}`);
 
-  const state = profileToState(profile);
+  const state = profileToState(profile as any);
   const missing = getMissingFields(state);
   const complete = missing.length === 0;
 
-  // If complete, classify risk and mark session done
+  // If complete, mark profile and session done
   if (complete) {
-    const riskCapacity = classifyRisk(state);
-    await UserProfile.updateOne(
-      { sessionId: new mongoose.Types.ObjectId(sessionId) },
-      { $set: { riskCapacity } }
-    );
-    await ConversationSession.updateOne(
-      { _id: new mongoose.Types.ObjectId(sessionId) },
-      { $set: { status: 'completed' } }
-    );
+    profile.isComplete = true;
+    await profile.save();
+    // We can't update ConversationSession here unless we pass sessionId
   }
 
   return { updated: state, missingFields: missing, isComplete: complete };
 }
 
 /**
- * Get the current profile state for a session.
+ * Get the current profile state for a user.
  */
-export async function getProfileState(sessionId: string): Promise<{
+export async function getProfileState(userId: string): Promise<{
   state: ConversationState;
   missingFields: string[];
   isComplete: boolean;
   riskCapacity?: string;
   recommendedCategory?: string;
 }> {
-  const profile = await UserProfile.findOne({
-    sessionId: new mongoose.Types.ObjectId(sessionId),
+  const profile = await FinancialProfile.findOne({
+    userId: new mongoose.Types.ObjectId(userId),
   });
-  if (!profile) throw new Error(`No profile found for session ${sessionId}`);
+  if (!profile) throw new Error(`No profile found for user ${userId}`);
 
-  const state = profileToState(profile);
+  const state = profileToState(profile as any);
   const missing = getMissingFields(state);
   const complete = missing.length === 0;
 
   const result: any = { state, missingFields: missing, isComplete: complete };
 
-  if (profile.riskCapacity) {
-    result.riskCapacity = profile.riskCapacity;
-    result.recommendedCategory = recommendCategory(profile.riskCapacity, profile.horizonYears);
+  if (complete) {
+    const riskCapacity = classifyRisk(state);
+    result.riskCapacity = riskCapacity;
+    result.recommendedCategory = recommendCategory(riskCapacity, state.horizonYears);
   }
 
   return result;

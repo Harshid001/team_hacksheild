@@ -15,8 +15,11 @@ import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import http from 'http';
+import cookieParser from 'cookie-parser';
 
 import { connectDB } from './db/connection';
+import authRoutes from './routes/auth.route';
+import profileRoutes from './routes/profile.route';
 import chatRoutes from './routes/chat.route';
 import reportRoutes from './routes/report.route';
 import analyticsRoutes from './routes/analytics.route';
@@ -30,13 +33,19 @@ const server = http.createServer(app);
 // Middleware
 // ---------------------------------------------------------------------------
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true, // Required for setting/reading httpOnly cookies
+}));
 app.use(express.json({ limit: '10mb' })); // Allow larger payloads for audio blobs
+app.use(cookieParser());
 
 // ---------------------------------------------------------------------------
 // REST Routes
 // ---------------------------------------------------------------------------
 
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/report', reportRoutes);
 app.use('/api/analytics', analyticsRoutes);

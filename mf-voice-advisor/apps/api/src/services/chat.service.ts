@@ -15,7 +15,8 @@
  */
 
 import { ChatMessage } from '../db/models/ChatMessage.model';
-import { UserProfile } from '../db/models/UserProfile.model';
+import { FinancialProfile } from '../db/models/FinancialProfile';
+import { User } from '../db/models/User';
 import { ConversationSession } from '../db/models/ConversationSession.model';
 import {
   chatMessagesStream,
@@ -37,8 +38,9 @@ import mongoose from 'mongoose';
 // System Prompt — persona + context (NO hardcoded conversational text)
 // ---------------------------------------------------------------------------
 
-function buildSystemPrompt(profileContext: string): string {
+function buildSystemPrompt(profileContext: string, userName: string): string {
   return `You are a friendly, knowledgeable, and empathetic financial advisor named "Advisor" who specializes in Indian mutual funds. You help first-time investors understand investing concepts.
+You are talking to ${userName}. Address them naturally by their name occasionally.
 
 PERSONALITY:
 - Warm, encouraging, and patient
@@ -55,7 +57,7 @@ CAPABILITIES:
 
 PROFILE COLLECTION:
 - During conversation, naturally gather the user's information when they share it
-- The fields you need are: age, investmentAmount (in ₹), goal (retirement/wedding/house/education/emergency/wealth/other), incomeStability (stable/unstable), horizonYears, riskReaction (how they'd react to a 15% drop)
+- The fields you need are: age, investmentAmount (in ₹), goal (retirement/wedding/house/education/emergency/wealth/other), horizonYears, riskReaction (how they'd react to a 15% drop)
 - Use the updateUserProfile tool when you've extracted information from the user's messages
 - Do NOT ask all questions at once — gather information naturally through conversation
 - Acknowledge what the user says before asking follow-up questions
@@ -83,7 +85,7 @@ const TOOLS: ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'updateUserProfile',
-      description: 'Save or update user profile information that was shared during the conversation. Call this when the user mentions their age, investment amount, goal, income type, investment horizon, or risk tolerance. You can update one or more fields at a time.',
+      description: 'Save or update user profile information that was shared during the conversation. Call this when the user mentions their age, investment amount, goal, investment horizon, or risk tolerance. You can update one or more fields at a time.',
       parameters: {
         type: 'object',
         properties: {
@@ -99,11 +101,6 @@ const TOOLS: ChatCompletionTool[] = [
             type: 'string',
             enum: ['retirement', 'wedding', 'house', 'education', 'emergency', 'wealth', 'other'],
             description: 'User\'s primary investment goal',
-          },
-          incomeStability: {
-            type: 'string',
-            enum: ['stable', 'unstable'],
-            description: '"stable" for salaried/government/regular income, "unstable" for freelance/business/variable income',
           },
           horizonYears: {
             type: 'number',
@@ -137,13 +134,13 @@ const TOOLS: ChatCompletionTool[] = [
 // ---------------------------------------------------------------------------
 
 async function handleToolCall(
-  sessionId: string,
+  userId: string,
   toolName: string,
   toolArgs: Record<string, any>
 ): Promise<any> {
   switch (toolName) {
     case 'updateUserProfile': {
-      const result = await updateUserProfile(sessionId, toolArgs);
+      const result = await updateUserProfile(userId, toolArgs);
       return {
         success: true,
         ...result,
@@ -153,7 +150,7 @@ async function handleToolCall(
       };
     }
     case 'getUserProfile': {
-      const result = await getProfileState(sessionId);
+      const result = await getProfileState(userId);
       return result;
     }
     default:
@@ -165,21 +162,20 @@ async function handleToolCall(
 // Build profile context string for system prompt
 // ---------------------------------------------------------------------------
 
-async function buildProfileContext(sessionId: string): Promise<string> {
+async function buildProfileContext(userId: string): Promise<string> {
   try {
-    const profile = await UserProfile.findOne({
-      sessionId: new mongoose.Types.ObjectId(sessionId),
+    const profile = await FinancialProfile.findOne({
+      userId: new mongoose.Types.ObjectId(userId),
     });
     if (!profile) return 'No profile data collected yet. Start by getting to know the user.';
 
-    const state = profileToState(profile);
+    const state = profileToState(profile as any);
     const missing = getMissingFields(state);
 
     const lines: string[] = [];
     if (state.age !== null) lines.push(`- Age: ${state.age}`);
     if (state.investmentAmount !== null) lines.push(`- Investment Amount: ₹${state.investmentAmount.toLocaleString('en-IN')}`);
     if (state.goal !== null) lines.push(`- Goal: ${state.goal}`);
-    if (state.incomeStability !== null) lines.push(`- Income: ${state.incomeStability}`);
     if (state.horizonYears !== null) lines.push(`- Horizon: ${state.horizonYears} years`);
     if (state.riskReaction !== null) lines.push(`- Risk Reaction: provided`);
 
@@ -192,9 +188,11 @@ async function buildProfileContext(sessionId: string): Promise<string> {
       ctx += `\n\nStill need: ${missing.join(', ')}`;
     } else {
       ctx += '\n\n✅ All fields collected! Profile is complete. Offer to generate their personalized report.';
-      if (profile.riskCapacity) {
-        ctx += `\nRisk Capacity: ${profile.riskCapacity}`;
-        ctx += `\nRecommended Category: ${recommendCategory(profile.riskCapacity, profile.horizonYears)}`;
+      
+      const { riskCapacity, recommendedCategory } = await getProfileState(userId);
+      if (riskCapacity) {
+        ctx += `\nRisk Capacity: ${riskCapacity}`;
+        ctx += `\nRecommended Category: ${recommendedCategory}`;
       }
     }
 
@@ -256,7 +254,7 @@ function cleanResponse(text: string): string {
  * the AI's greeting message via the LLM (NOT hardcoded).
  * Returns sessionId and an async generator for streaming the greeting.
  */
-export async function startChat(): Promise<{
+export async function startChat(userId: string): Promise<{
   sessionId: string;
   stream: AsyncGenerator<StreamChunk, void, unknown>;
 }> {
@@ -264,23 +262,26 @@ export async function startChat(): Promise<{
   const session = new ConversationSession();
   await session.save();
   const sessionId = session._id.toString();
+  
+  const user = await User.findById(userId);
+  const userName = user?.name || 'Friend';
 
-  // Create empty profile
-  const profile = new UserProfile({
-    sessionId: new mongoose.Types.ObjectId(sessionId),
-  });
-  await profile.save();
+  // Ensure FinancialProfile exists
+  let profile = await FinancialProfile.findOne({ userId });
+  if (!profile) {
+    await FinancialProfile.create({ userId });
+  }
 
   // Build system prompt
-  const profileCtx = await buildProfileContext(sessionId);
-  const systemPrompt = buildSystemPrompt(profileCtx);
+  const profileCtx = await buildProfileContext(userId);
+  const systemPrompt = buildSystemPrompt(profileCtx, userName);
 
   // Generate greeting via LLM
   const messages: ChatCompletionMessageParam[] = [
     { role: 'system', content: systemPrompt },
     {
       role: 'user',
-      content: '[SYSTEM: The user just opened the chat. Generate a warm, friendly greeting and introduce yourself. Ask them a natural opening question to get the conversation started. Keep it SHORT — 2-3 sentences max.]',
+      content: `[SYSTEM: The user just opened the chat. Generate a warm, friendly greeting and address them as ${userName}. Ask them a natural opening question to get the conversation started. Keep it SHORT — 2-3 sentences max.]`,
     },
   ];
 
@@ -329,17 +330,21 @@ export async function startChat(): Promise<{
  */
 export async function* streamChatResponse(
   sessionId: string,
-  userMessage: string
+  userMessage: string,
+  userId: string
 ): AsyncGenerator<StreamChunk & { toolResult?: any }, void, unknown> {
   // 1. Save user message
   await saveMessage(sessionId, 'user', userMessage);
 
   // 2. Load conversation history
   const history = await loadHistory(sessionId);
+  
+  const user = await User.findById(userId);
+  const userName = user?.name || 'Friend';
 
   // 3. Build system prompt with current profile state
-  const profileCtx = await buildProfileContext(sessionId);
-  const systemPrompt = buildSystemPrompt(profileCtx);
+  const profileCtx = await buildProfileContext(userId);
+  const systemPrompt = buildSystemPrompt(profileCtx, userName);
 
   // 4. Construct messages array
   const messages: ChatCompletionMessageParam[] = [
@@ -387,7 +392,7 @@ export async function* streamChatResponse(
       }
 
       // Execute the tool
-      const toolResult = await handleToolCall(sessionId, tc.name, args);
+      const toolResult = await handleToolCall(userId, tc.name, args);
       toolCallsExecuted.push({ name: tc.name, args, result: toolResult });
 
       if (toolResult?.isComplete) {
@@ -404,8 +409,8 @@ export async function* streamChatResponse(
 
     // 7. Continue generation with tool results
     // Build updated messages with tool call + results for the LLM to continue
-    const updatedProfileCtx = await buildProfileContext(sessionId);
-    const updatedSystemPrompt = buildSystemPrompt(updatedProfileCtx);
+    const updatedProfileCtx = await buildProfileContext(userId);
+    const updatedSystemPrompt = buildSystemPrompt(updatedProfileCtx, userName);
 
     const continuationMessages: ChatCompletionMessageParam[] = [
       { role: 'system', content: updatedSystemPrompt },

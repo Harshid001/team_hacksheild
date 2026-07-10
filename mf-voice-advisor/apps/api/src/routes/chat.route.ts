@@ -11,10 +11,11 @@
  *   GET  /api/chat/:sessionId/profile  → returns current profile state (JSON)
  */
 
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { startChat, streamChatResponse, getMessages } from '../services/chat.service';
 import { getProfileState } from '../services/profile.service';
 import { ConversationSession } from '../db/models/ConversationSession.model';
+import { requireAuth as authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -22,7 +23,12 @@ const router = Router();
 // POST /api/chat/start — create session + stream AI greeting
 // ---------------------------------------------------------------------------
 
-router.post('/start', async (req, res) => {
+router.post('/start', authMiddleware, async (req: AuthRequest, res: Response): Promise<any> => {
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   // Set SSE headers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -31,7 +37,7 @@ router.post('/start', async (req, res) => {
   res.flushHeaders();
 
   try {
-    const { sessionId, stream } = await startChat();
+    const { sessionId, stream } = await startChat(userId);
 
     // Send session ID first
     res.write(`data: ${JSON.stringify({ type: 'session', sessionId })}\n\n`);
@@ -55,9 +61,14 @@ router.post('/start', async (req, res) => {
 // POST /api/chat/:sessionId/message — stream AI response to user message
 // ---------------------------------------------------------------------------
 
-router.post('/:sessionId/message', async (req, res) => {
+router.post('/:sessionId/message', authMiddleware, async (req: AuthRequest, res: Response): Promise<any> => {
   const { sessionId } = req.params;
   const { message } = req.body;
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   if (!message || typeof message !== 'string') {
     res.status(400).json({ error: 'message is required and must be a string' });
@@ -80,7 +91,7 @@ router.post('/:sessionId/message', async (req, res) => {
 
   try {
     // Stream the AI response
-    for await (const chunk of streamChatResponse(sessionId, message)) {
+    for await (const chunk of streamChatResponse(sessionId, message, userId)) {
       res.write(`data: ${JSON.stringify(chunk)}\n\n`);
     }
 
@@ -120,11 +131,14 @@ router.get('/:sessionId/messages', async (req, res) => {
 // GET /api/chat/:sessionId/profile — current profile state
 // ---------------------------------------------------------------------------
 
-router.get('/:sessionId/profile', async (req, res) => {
+router.get('/:sessionId/profile', authMiddleware, async (req: AuthRequest, res: Response): Promise<any> => {
   try {
-    const { sessionId } = req.params;
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
-    const profileState = await getProfileState(sessionId);
+    const profileState = await getProfileState(userId);
     res.json(profileState);
   } catch (error: any) {
     console.error(`GET /chat/:sessionId/profile error:`, error);
