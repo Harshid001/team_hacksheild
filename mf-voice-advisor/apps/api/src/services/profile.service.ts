@@ -1,0 +1,209 @@
+/**
+ * profile.service.ts — Deterministic Business Logic (extracted from conversation.service.ts)
+ *
+ * Contains ONLY pure business logic — NO conversational text, NO LLM calls.
+ * - Risk classification (deterministic, auditable)
+ * - Category recommendation (deterministic)
+ * - Profile state helpers
+ *
+ * Used by chat.service.ts (tool handlers) and reportComposer.service.ts
+ */
+
+import { UserProfile, IUserProfile } from '../db/models/UserProfile.model';
+import { ConversationSession } from '../db/models/ConversationSession.model';
+import mongoose from 'mongoose';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface ConversationState {
+  age: number | null;
+  investmentAmount: number | null;
+  goal: string | null;
+  incomeStability: 'stable' | 'unstable' | null;
+  horizonYears: number | null;
+  riskReaction: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// State helpers
+// ---------------------------------------------------------------------------
+
+export function profileToState(profile: IUserProfile): ConversationState {
+  return {
+    age: profile.age,
+    investmentAmount: profile.investmentAmount,
+    goal: profile.goal,
+    incomeStability: profile.incomeStability,
+    horizonYears: profile.horizonYears,
+    riskReaction: profile.riskReaction,
+  };
+}
+
+export function getMissingFields(state: ConversationState): string[] {
+  const missing: string[] = [];
+  if (state.age === null) missing.push('age');
+  if (state.investmentAmount === null) missing.push('investmentAmount');
+  if (state.goal === null) missing.push('goal');
+  if (state.incomeStability === null) missing.push('incomeStability');
+  if (state.horizonYears === null) missing.push('horizonYears');
+  if (state.riskReaction === null) missing.push('riskReaction');
+  return missing;
+}
+
+export function isProfileComplete(state: ConversationState): boolean {
+  return getMissingFields(state).length === 0;
+}
+
+// ---------------------------------------------------------------------------
+// Risk classification — DETERMINISTIC, not LLM (auditable)
+// ---------------------------------------------------------------------------
+
+export function classifyRisk(state: ConversationState): 'low' | 'medium' | 'high' {
+  let score = 0;
+
+  // Age factor: younger = higher risk tolerance
+  if (state.age !== null) {
+    if (state.age < 30) score += 3;
+    else if (state.age < 45) score += 2;
+    else if (state.age < 55) score += 1;
+    // 55+ adds 0
+  }
+
+  // Horizon factor: longer = higher risk tolerance
+  if (state.horizonYears !== null) {
+    if (state.horizonYears >= 10) score += 3;
+    else if (state.horizonYears >= 5) score += 2;
+    else if (state.horizonYears >= 3) score += 1;
+    // <3 years adds 0
+  }
+
+  // Income stability factor
+  if (state.incomeStability === 'stable') score += 2;
+  // unstable adds 0
+
+  // Risk reaction factor (keyword-based analysis of their free-text answer)
+  if (state.riskReaction) {
+    const reaction = state.riskReaction.toLowerCase();
+    const calmKeywords = ['hold', 'wait', 'stay', 'opportunity', 'buy more', 'patient', 'long term', 'fine', 'ok', 'okay', 'invest more'];
+    const nervousKeywords = ['sell', 'withdraw', 'panic', 'scared', 'worried', 'afraid', 'loss', 'risky', 'pull out', 'remove', 'take out'];
+
+    const calmCount = calmKeywords.filter(kw => reaction.includes(kw)).length;
+    const nervousCount = nervousKeywords.filter(kw => reaction.includes(kw)).length;
+
+    if (calmCount > nervousCount) score += 3;
+    else if (calmCount === nervousCount) score += 1;
+    // nervous dominant adds 0
+  }
+
+  // Classify based on total score (max = 11)
+  if (score >= 8) return 'high';
+  if (score >= 4) return 'medium';
+  return 'low';
+}
+
+// ---------------------------------------------------------------------------
+// Category recommendation — DETERMINISTIC based on risk + horizon
+// ---------------------------------------------------------------------------
+
+export function recommendCategory(
+  riskCapacity: 'low' | 'medium' | 'high',
+  horizonYears: number | null
+): string {
+  const horizon = horizonYears ?? 5;
+
+  if (riskCapacity === 'low') {
+    return horizon <= 3 ? 'Debt' : 'Hybrid';
+  }
+  if (riskCapacity === 'medium') {
+    if (horizon <= 3) return 'Hybrid';
+    if (horizon <= 7) return 'Large Cap';
+    return 'Flexi Cap';
+  }
+  // high risk
+  if (horizon <= 3) return 'Large Cap';
+  if (horizon <= 7) return 'Mid Cap';
+  return 'Small Cap';
+}
+
+// ---------------------------------------------------------------------------
+// Profile CRUD — used as tool handlers by chat.service.ts
+// ---------------------------------------------------------------------------
+
+/**
+ * Update user profile with partial data. Returns the updated profile state.
+ */
+export async function updateUserProfile(
+  sessionId: string,
+  data: Partial<ConversationState>
+): Promise<{ updated: ConversationState; missingFields: string[]; isComplete: boolean }> {
+  const updateData: Record<string, any> = {};
+
+  if (data.age !== undefined && data.age !== null) updateData.age = data.age;
+  if (data.investmentAmount !== undefined && data.investmentAmount !== null) updateData.investmentAmount = data.investmentAmount;
+  if (data.goal !== undefined && data.goal !== null) updateData.goal = data.goal;
+  if (data.incomeStability !== undefined && data.incomeStability !== null) updateData.incomeStability = data.incomeStability;
+  if (data.horizonYears !== undefined && data.horizonYears !== null) updateData.horizonYears = data.horizonYears;
+  if (data.riskReaction !== undefined && data.riskReaction !== null) updateData.riskReaction = data.riskReaction;
+
+  if (Object.keys(updateData).length > 0) {
+    await UserProfile.updateOne(
+      { sessionId: new mongoose.Types.ObjectId(sessionId) },
+      { $set: updateData }
+    );
+  }
+
+  const profile = await UserProfile.findOne({
+    sessionId: new mongoose.Types.ObjectId(sessionId),
+  });
+  if (!profile) throw new Error(`No profile found for session ${sessionId}`);
+
+  const state = profileToState(profile);
+  const missing = getMissingFields(state);
+  const complete = missing.length === 0;
+
+  // If complete, classify risk and mark session done
+  if (complete) {
+    const riskCapacity = classifyRisk(state);
+    await UserProfile.updateOne(
+      { sessionId: new mongoose.Types.ObjectId(sessionId) },
+      { $set: { riskCapacity } }
+    );
+    await ConversationSession.updateOne(
+      { _id: new mongoose.Types.ObjectId(sessionId) },
+      { $set: { status: 'completed' } }
+    );
+  }
+
+  return { updated: state, missingFields: missing, isComplete: complete };
+}
+
+/**
+ * Get the current profile state for a session.
+ */
+export async function getProfileState(sessionId: string): Promise<{
+  state: ConversationState;
+  missingFields: string[];
+  isComplete: boolean;
+  riskCapacity?: string;
+  recommendedCategory?: string;
+}> {
+  const profile = await UserProfile.findOne({
+    sessionId: new mongoose.Types.ObjectId(sessionId),
+  });
+  if (!profile) throw new Error(`No profile found for session ${sessionId}`);
+
+  const state = profileToState(profile);
+  const missing = getMissingFields(state);
+  const complete = missing.length === 0;
+
+  const result: any = { state, missingFields: missing, isComplete: complete };
+
+  if (profile.riskCapacity) {
+    result.riskCapacity = profile.riskCapacity;
+    result.recommendedCategory = recommendCategory(profile.riskCapacity, profile.horizonYears);
+  }
+
+  return result;
+}

@@ -17,7 +17,7 @@ import { chatCompletion } from './ollama.service';
 import { UserProfile, IUserProfile } from '../db/models/UserProfile.model';
 import { Report } from '../db/models/Report.model';
 import { FundMetrics, IFundMetrics } from '../db/models/FundMetrics.model';
-import { recommendCategory } from './conversation.service';
+import { recommendCategory } from './profile.service';
 import { getAllCachedMetrics } from './analyticsClient.service';
 import mongoose from 'mongoose';
 

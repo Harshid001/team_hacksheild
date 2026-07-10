@@ -86,7 +86,65 @@ export interface ReportData {
 }
 
 // ---------------------------------------------------------------------------
-// Answer — a single Q&A exchange in a conversation
+// Chat Message — a single message in a conversation (replaces Answer)
+// ---------------------------------------------------------------------------
+
+export interface ChatMessageData {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  toolCalls?: Array<{
+    name: string;
+    args: Record<string, any>;
+    result?: any;
+  }>;
+  createdAt: Date;
+}
+
+// ---------------------------------------------------------------------------
+// Chat Stream Events — SSE event types
+// ---------------------------------------------------------------------------
+
+export interface ChatStreamTokenEvent {
+  type: 'token';
+  content: string;
+}
+
+export interface ChatStreamSessionEvent {
+  type: 'session';
+  sessionId: string;
+}
+
+export interface ChatStreamToolCallEvent {
+  type: 'tool_call';
+  toolCall: {
+    id: string;
+    name: string;
+    args: string;
+  };
+  toolResult?: any;
+}
+
+export interface ChatStreamDoneEvent {
+  type: 'done';
+  content?: string;
+  finishReason?: string;
+}
+
+export interface ChatStreamErrorEvent {
+  type: 'error';
+  content: string;
+}
+
+export type ChatStreamEvent =
+  | ChatStreamTokenEvent
+  | ChatStreamSessionEvent
+  | ChatStreamToolCallEvent
+  | ChatStreamDoneEvent
+  | ChatStreamErrorEvent;
+
+// ---------------------------------------------------------------------------
+// Answer — legacy type (kept for backward compat)
 // ---------------------------------------------------------------------------
 
 export interface AnswerData {
