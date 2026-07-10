@@ -9,7 +9,7 @@
 import type { Report } from '../../../../packages/shared/src/types'
 
 const BASE = '/api'
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || true // default to true for hackathon demo convenience
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' // set VITE_USE_MOCK=true in .env to use mock data
 
 // ── Session ──────────────────────────────────────────────────────────────────
 
