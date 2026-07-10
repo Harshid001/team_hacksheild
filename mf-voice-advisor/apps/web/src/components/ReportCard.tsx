@@ -1,84 +1,133 @@
-import ReactMarkdown from 'react-markdown';
-import type { ReportData } from 'shared/types';
-import { Target, TrendingUp, AlertCircle, Calendar, IndianRupee } from 'lucide-react';
-import { DISCLAIMER_TEXT } from 'shared/constants';
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import type { FundRecommendation } from '../../../../packages/shared/src/types'
 
-interface ReportCardProps {
-  report: ReportData;
+interface Props {
+  recommendation: FundRecommendation
 }
 
-export function ReportCard({ report }: ReportCardProps) {
-  // Extract disclaimer from markdown if present so we can style it differently
-  const hasDisclaimerInText = report.narrativeText.includes('DISCLAIMER:');
-  
-  let contentText = report.narrativeText;
-  if (hasDisclaimerInText) {
-    const parts = report.narrativeText.split('---');
-    if (parts.length > 1) {
-      contentText = parts.slice(1).join('---').trim();
-    }
-  }
+export default function ReportCard({ recommendation }: Props) {
+  const {
+    categoryName,
+    emoji,
+    description,
+    color,
+    riskTag,
+    representativeMetrics: metrics,
+    aiExplanation,
+  } = recommendation
+
+  const [showAiExp, setShowAiExp] = useState(true)
 
   return (
-    <div className="glass-card rounded-3xl p-8 md:p-12 border-t border-t-white/20">
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="solid-card overflow-hidden"
+    >
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 pb-8 border-b border-white/10">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-50 mb-2">Your Personalized Mutual Fund Analysis</h2>
-          <p className="text-slate-400">Generated on {new Date(report.createdAt).toLocaleDateString()}</p>
-        </div>
-        <div className="bg-indigo-500/20 border border-indigo-400/50 rounded-full px-6 py-2 flex items-center gap-2">
-          <Target size={20} className="text-indigo-400" />
-          <span className="font-semibold text-indigo-300 tracking-wide uppercase text-sm">
-            Category: {report.recommendedCategory}
-          </span>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="prose prose-invert prose-lg max-w-none prose-headings:text-indigo-300 prose-headings:font-semibold prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-white">
-        <ReactMarkdown>{contentText}</ReactMarkdown>
-      </div>
-
-      {/* Metrics Table */}
-      {report.metricsUsed && report.metricsUsed.length > 0 && (
-        <div className="mt-16">
-          <h3 className="text-2xl font-semibold text-indigo-300 mb-6 flex items-center gap-3">
-            <TrendingUp size={24} />
-            Data Used for Analysis
-          </h3>
-          <div className="overflow-x-auto rounded-xl border border-white/10">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-white/5 text-slate-300">
-                <tr>
-                  <th className="p-4 font-semibold">Fund Name</th>
-                  <th className="p-4 font-semibold">Category</th>
-                  <th className="p-4 font-semibold text-right">CAGR</th>
-                  <th className="p-4 font-semibold text-right">Volatility</th>
-                  <th className="p-4 font-semibold text-right">Sharpe</th>
-                  <th className="p-4 font-semibold text-right">Max Drawdown</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 bg-slate-900/20">
-                {report.metricsUsed.map((m) => (
-                  <tr key={m.schemeCode} className="hover:bg-white/5 transition-colors">
-                    <td className="p-4 font-medium text-slate-100">{m.schemeName}</td>
-                    <td className="p-4 text-slate-400">{m.category}</td>
-                    <td className="p-4 text-right text-emerald-400">{(m.cagr * 100).toFixed(2)}%</td>
-                    <td className="p-4 text-right text-amber-400">{(m.volatility * 100).toFixed(2)}%</td>
-                    <td className="p-4 text-right text-indigo-300">{m.sharpeRatio.toFixed(2)}</td>
-                    <td className="p-4 text-right text-red-400">{(m.maxDrawdown * 100).toFixed(2)}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div
+        className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 border-b"
+        style={{ borderBottomColor: `${color}20`, background: `linear-gradient(135deg, ${color}08 0%, transparent 100%)` }}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          <span className="text-2xl" aria-hidden="true">{emoji}</span>
+          <div>
+            <h3 className="font-display font-semibold text-navy-800 text-lg leading-tight">{categoryName}</h3>
+            <p className="text-warm-500 text-xs mt-0.5">{description}</p>
           </div>
-          <p className="text-xs text-slate-500 mt-4 italic flex items-center gap-2">
-            <AlertCircle size={14} />
-            CAGR and volatility are annualized. Data is fetched from historical NAV records.
-          </p>
         </div>
-      )}
+        <div className="flex items-center self-start sm:self-auto gap-2">
+           <span className="text-xs font-semibold px-2.5 py-1 rounded-md border" style={{ color, borderColor: `${color}40`, backgroundColor: `${color}10` }}>
+             {riskTag} Risk
+           </span>
+        </div>
+      </div>
+
+      <div className="p-5 space-y-6">
+        {/* Real Data Section */}
+        <section aria-label="Computed Historical Data">
+          <div className="flex items-center justify-between mb-3">
+             <div className="flex items-center gap-2">
+               <span className="badge-computed">
+                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                 </svg>
+                 Real Historical Data
+               </span>
+               <span className="text-xs text-warm-400 font-medium">Computed from mfapi.in</span>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-blue-50/40 border border-blue-100 rounded-xl p-4">
+            <MetricBox label="5Y CAGR" value={`${metrics.cagr5yr}%`} tooltip="Average annual growth rate over the past 5 years. Higher is better." />
+            <MetricBox label="Volatility" value={`${metrics.volatilityAnnualized}%`} tooltip="How much the fund's returns bounce up and down. Lower means a smoother ride." />
+            <MetricBox label="Sharpe Ratio" value={metrics.sharpeRatio.toString()} tooltip="Return earned per unit of risk. Over 1.0 is generally considered good." />
+            <MetricBox label="Max Drawdown" value={`${metrics.maxDrawdown}%`} tooltip="The biggest historical drop from peak to trough. Shows the worst-case scenario." />
+            <MetricBox label="Expense Ratio" value={`${metrics.expenseRatio}%`} tooltip="The annual fee the fund charges you. Lower is better." />
+          </div>
+        </section>
+
+        {/* AI Explanation Section */}
+        <section aria-label="AI Explanation">
+           <div className="flex items-center justify-between mb-2">
+             <div className="flex items-center gap-2">
+               <span className="badge-ai">
+                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                 </svg>
+                 AI Explanation
+               </span>
+             </div>
+             <button
+               onClick={() => setShowAiExp(!showAiExp)}
+               className="text-xs text-warm-500 hover:text-navy-600 transition-colors flex items-center gap-1"
+               aria-expanded={showAiExp}
+             >
+               {showAiExp ? 'Hide' : 'Show'}
+               <svg className={`w-3.5 h-3.5 transition-transform ${showAiExp ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+               </svg>
+             </button>
+           </div>
+
+           <AnimatePresence>
+             {showAiExp && (
+               <motion.div
+                 initial={{ height: 0, opacity: 0 }}
+                 animate={{ height: 'auto', opacity: 1 }}
+                 exit={{ height: 0, opacity: 0 }}
+                 className="overflow-hidden"
+               >
+                 <div className="bg-violet-50/50 border border-violet-100 rounded-xl p-4 text-sm text-navy-800 leading-relaxed">
+                   {aiExplanation}
+                 </div>
+               </motion.div>
+             )}
+           </AnimatePresence>
+        </section>
+
+      </div>
+    </motion.article>
+  )
+}
+
+function MetricBox({ label, value, tooltip }: { label: string; value: string; tooltip: string }) {
+  return (
+    <div className="tooltip-container group flex flex-col justify-center">
+      <div className="flex items-center gap-1 mb-1 text-warm-500">
+        <span className="text-[10px] font-semibold uppercase tracking-wide">{label}</span>
+        <svg className="w-3 h-3 cursor-help text-warm-400 group-hover:text-teal-600 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div className="font-display font-bold text-navy-700 text-lg">{value}</div>
+
+      {/* Tooltip */}
+      <div className="tooltip-box absolute bottom-full left-0 mb-2 w-48 bg-navy-800 text-white text-xs rounded-lg p-2.5 shadow-lg z-10 pointer-events-none">
+        {tooltip}
+        <div className="absolute top-full left-4 w-2 h-2 bg-navy-800 transform rotate-45 -mt-1"></div>
+      </div>
     </div>
-  );
+  )
 }

@@ -48,3 +48,16 @@ export const FUND_CATEGORIES = [
 ] as const;
 
 export type FundCategory = (typeof FUND_CATEGORIES)[number];
+
+// ---------------------------------------------------------------------------
+// Stage labels for progress visualization (Section 7)
+// ---------------------------------------------------------------------------
+
+export const STAGE_LABELS = [
+  'Age',
+  'Investment Amount',
+  'Goal',
+  'Income Stability',
+  'Horizon Years',
+  'Risk Reaction',
+] as const;

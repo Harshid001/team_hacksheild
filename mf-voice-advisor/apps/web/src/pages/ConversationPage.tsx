@@ -1,300 +1,331 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { startChatStream, sendMessageStream, getChatProfile } from '../lib/api';
-import { createSpeechRecognition, isSpeechRecognitionSupported } from '../lib/speechRecognition';
-import { speak, cancelSpeech } from '../lib/speechSynthesis';
-import { ConversationBubble } from '../components/ConversationBubble';
-import { MicButton } from '../components/MicButton';
-import { ListeningIndicator } from '../components/ListeningIndicator';
-import { Send, FileText, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { startSession, sendAnswer } from '../lib/api'
+import { createRecognizer, isSTTSupported } from '../lib/speechRecognition'
+import { speak, stopSpeaking } from '../lib/speechSynthesis'
+import { TRANSLATIONS } from '../lib/translations'
 
-interface ChatMsg {
-  id: string;
-  type: 'bot' | 'user';
-  text: string;
-  isStreaming?: boolean;
-}
+import ConversationBubble from '../components/ConversationBubble'
+import ListeningIndicator from '../components/ListeningIndicator'
+import MicControls from '../components/MicControls'
+import StageLabel from '../components/StageLabel'
+import TextFallback from '../components/TextFallback'
 
-export function ConversationPage() {
-  const navigate = useNavigate();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [history, setHistory] = useState<ChatMsg[]>([]);
-  
-  // States
-  const [isListening, setIsListening] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(true);
-  const [isComplete, setIsComplete] = useState(false);
-  const [textInput, setTextInput] = useState('');
-  
-  // Refs
-  const sessionIdRef = useRef<string | null>(null);
-  const isCompleteRef = useRef<boolean>(false);
-  const recognitionRef = useRef<any>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const streamingMsgIdRef = useRef<string | null>(null);
+type Message = { id: string; role: 'ai' | 'user' | 'hint'; text: string }
 
-  // Keep refs in sync
+export default function ConversationPage() {
+  const navigate = useNavigate()
+  const lang = localStorage.getItem('pref-lang') || 'en'
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.en
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [stageIndex, setStageIndex] = useState(0)
+  const [interimText, setInterimText] = useState('')
+
+  const [orbState, setOrbState] = useState<'idle' | 'listening' | 'speaking' | 'thinking'>('idle')
+  const [isMuted, setIsMuted] = useState(false)
+  const [sttSupported, setSttSupported] = useState(true)
+  const [isAiTyping, setIsAiTyping] = useState(false)
+
+  const stopSttRef = useRef<(() => void) | null>(null)
+  const transcriptEndRef = useRef<HTMLDivElement>(null)
+
+  // Initialize session on mount
   useEffect(() => {
-    sessionIdRef.current = sessionId;
-    isCompleteRef.current = isComplete;
-  }, [sessionId, isComplete]);
-
-  // Auto scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [history, isProcessing]);
-
-  // Update streaming message text
-  const updateStreamingMsg = useCallback((msgId: string, newText: string) => {
-    setHistory(prev => prev.map(msg => 
-      msg.id === msgId ? { ...msg, text: newText } : msg
-    ));
-  }, []);
-
-  // Finalize streaming message
-  const finalizeStreamingMsg = useCallback((msgId: string, finalText: string) => {
-    setHistory(prev => prev.map(msg => 
-      msg.id === msgId ? { ...msg, text: finalText, isStreaming: false } : msg
-    ));
-    streamingMsgIdRef.current = null;
-  }, []);
-
-  // Check profile completion
-  const checkProfileCompletion = useCallback(async (sid: string) => {
-    try {
-      const profile = await getChatProfile(sid);
-      if (profile.isComplete) {
-        setIsComplete(true);
-      }
-    } catch {
-      // Ignore errors
-    }
-  }, []);
-
-  // Init Conversation — AI generates the greeting via LLM
-  useEffect(() => {
-    async function init() {
+    let mounted = true
+    const init = async () => {
       try {
-        const streamingId = `bot-${Date.now()}`;
-        
-        // Add an empty streaming bot message
-        setHistory([{ id: streamingId, type: 'bot', text: '', isStreaming: true }]);
-        streamingMsgIdRef.current = streamingId;
-
-        let accumulatedText = '';
-
-        await startChatStream({
-          onSessionId: (sid) => {
-            setSessionId(sid);
-            sessionIdRef.current = sid;
-          },
-          onToken: (token) => {
-            accumulatedText += token;
-            updateStreamingMsg(streamingId, accumulatedText);
-          },
-          onDone: async (fullMessage) => {
-            finalizeStreamingMsg(streamingId, fullMessage);
-            setIsProcessing(false);
-            // Read the greeting aloud
-            await speak(fullMessage);
-          },
-          onError: (error) => {
-            console.error('Chat start error:', error);
-            finalizeStreamingMsg(streamingId, `Connection error: ${error}`);
-            setIsProcessing(false);
-          },
-        });
-      } catch (err) {
-        console.error('Failed to start chat:', err);
-        setIsProcessing(false);
-      }
-    }
-    init();
-
-    // Setup speech recognition
-    if (isSpeechRecognitionSupported()) {
-      recognitionRef.current = createSpeechRecognition();
-      recognitionRef.current.onResult = (transcript: string) => {
-        setTextInput(transcript);
-      };
-      
-      recognitionRef.current.onEnd = (lastTranscript: string) => {
-        setIsListening(false);
-        if (lastTranscript && lastTranscript.trim()) {
-          handleUserSubmit(lastTranscript);
+        let sid = sessionStorage.getItem('sessionId')
+        if (!sid) {
+          sid = await startSession()
+          sessionStorage.setItem('sessionId', sid)
         }
-      };
-      recognitionRef.current.onError = (err: string) => {
-        console.error('Speech recognition error:', err);
-        setIsListening(false);
-      };
-    }
+        if (!mounted) return
+        setSessionId(sid)
+        setSttSupported(isSTTSupported())
 
-    return () => {
-      cancelSpeech();
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        // Show typing indicator, then first question
+        setIsAiTyping(true)
+        setTimeout(() => {
+          if (!mounted) return
+          setIsAiTyping(false)
+          const welcomeMsg = t.convWelcome
+          const welcomeHint = t.convWelcomeHint
+          
+          handleNewQuestion(welcomeMsg, welcomeHint)
+        }, 1200)
+      } catch (err) {
+        console.error('Session start failed', err)
       }
-    };
-  }, []);
-
-  const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-    } else {
-      cancelSpeech();
-      recognitionRef.current?.start();
-      setIsListening(true);
     }
-  };
+    init()
+    return () => { mounted = false; stopSpeaking() }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const handleUserSubmit = async (text: string) => {
-    const currentSessionId = sessionIdRef.current;
-    if (!text.trim() || !currentSessionId) return;
-    
-    // Add user message
-    const userMsgId = `user-${Date.now()}`;
-    setHistory(prev => [...prev, { id: userMsgId, type: 'user', text }]);
-    setTextInput('');
-    setIsProcessing(true);
+  // Auto-scroll to bottom of chat
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isAiTyping])
 
-    // Add streaming bot message placeholder
-    const botMsgId = `bot-${Date.now()}`;
-    setHistory(prev => [...prev, { id: botMsgId, type: 'bot', text: '', isStreaming: true }]);
-    streamingMsgIdRef.current = botMsgId;
+  const handleNewQuestion = (qText: string, hint?: string) => {
+    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'ai', text: qText }])
+    if (hint) {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'hint', text: hint }])
+      }, 600)
+    }
 
-    let accumulatedText = '';
+    if (!isMuted) {
+      setOrbState('speaking')
+      const langSpeechMap: Record<string, string> = {
+        en: 'en-IN', hi: 'hi-IN', bn: 'bn-IN', sd: 'sd-IN', ta: 'ta-IN', te: 'te-IN',
+        ur: 'ur-PK', pa: 'pa-IN', gu: 'gu-IN', kn: 'kn-IN', ml: 'ml-IN', mr: 'mr-IN'
+      }
+      speak(qText, {
+        lang: langSpeechMap[lang] || 'en-IN',
+        onEnd: () => setOrbState('idle'),
+        onError: () => setOrbState('idle')
+      })
+    } else {
+      setOrbState('idle')
+    }
+  }
+
+  const handleSendAnswer = async (text: string) => {
+    if (!sessionId) return
+    stopSpeaking()
+    if (stopSttRef.current) { stopSttRef.current(); stopSttRef.current = null }
+    setInterimText('')
+
+    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', text }])
+    setOrbState('thinking')
 
     try {
-      await sendMessageStream(currentSessionId, text, {
-        onToken: (token) => {
-          accumulatedText += token;
-          updateStreamingMsg(botMsgId, accumulatedText);
-        },
-        onToolCall: (name, result) => {
-          // Check for profile completion when profile is updated
-          if (name === 'updateUserProfile' && result?.isComplete) {
-            setIsComplete(true);
-          }
-        },
-        onDone: async (fullMessage) => {
-          finalizeStreamingMsg(botMsgId, fullMessage);
-          setIsProcessing(false);
-          // Check profile completion
-          await checkProfileCompletion(currentSessionId);
-          // Read response aloud
-          await speak(fullMessage);
-        },
-        onError: (error) => {
-          console.error('Chat error:', error);
-          finalizeStreamingMsg(botMsgId, `Connection error: ${error}`);
-          setIsProcessing(false);
-        },
-      });
+      const { nextQuestion, isComplete } = await sendAnswer(sessionId, text)
+      if (isComplete) {
+        navigate(`/report/${sessionId}`)
+      } else {
+        setStageIndex(p => Math.min(p + 1, 5))
+        // Show typing indicator before AI response
+        setIsAiTyping(true)
+        setTimeout(() => {
+          setIsAiTyping(false)
+          handleNewQuestion(nextQuestion)
+        }, 800)
+      }
     } catch (err) {
-      console.error('Failed to send message:', err);
-      finalizeStreamingMsg(botMsgId, 'Failed to get AI response. Please try again.');
-      setIsProcessing(false);
+      console.error(err)
+      setOrbState('idle')
     }
-  };
+  }
+
+  const startListening = () => {
+    if (!sttSupported || isMuted || orbState === 'thinking') return
+    stopSpeaking()
+    setOrbState('listening')
+    setInterimText('')
+
+    stopSttRef.current = createRecognizer({
+      onInterim: (text) => setInterimText(text),
+      onFinal: (text) => {
+        setOrbState('idle')
+        setInterimText('')
+        if (text) handleSendAnswer(text)
+      },
+      onError: (code) => {
+        setOrbState('idle')
+        setInterimText('')
+        if (code === 'mic-denied') setIsMuted(true)
+      },
+      onEnd: () => {
+        if (orbState === 'listening') setOrbState('idle')
+      }
+    })
+  }
+
+  const handleOrbClick = () => {
+    if (orbState === 'idle' || orbState === 'speaking') startListening()
+    else if (orbState === 'listening' && stopSttRef.current) {
+      stopSttRef.current()
+      setOrbState('idle')
+      setInterimText('')
+    }
+  }
 
   return (
-    <div className="h-screen flex flex-col relative z-10 overflow-hidden">
-      {/* Header */}
-      <header className="p-6 border-b border-white/10 glass-panel shrink-0">
-        <h1 className="text-xl font-bold text-slate-100 flex items-center justify-between">
-          <span className="text-gradient">Advisor Chat</span>
-          {isComplete && (
-            <span className="px-3 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">
-              Profile Complete
-            </span>
-          )}
-        </h1>
+    <main className="h-screen max-h-screen flex flex-col bg-warm-50 overflow-hidden relative">
+
+      {/* ── Top Bar ─────────────────────────────────────────────── */}
+      <header className="px-4 py-3 flex items-center justify-between bg-white border-b border-warm-200 flex-shrink-0 shadow-sm">
+        {/* Exit Button */}
+        <button
+          onClick={() => {
+            stopSpeaking()
+            navigate('/')
+          }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-warm-200 text-xs font-semibold text-warm-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 select-none"
+          aria-label="Exit conversation"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>{t.convExit}</span>
+        </button>
+
+        {/* Progress indicator */}
+        <StageLabel stageIndex={stageIndex} />
+
+        {/* Controls */}
+        <MicControls
+          isMuted={isMuted}
+          onToggleMute={() => {
+            setIsMuted(m => !m)
+            if (orbState === 'speaking') stopSpeaking()
+          }}
+          onReplay={() => {
+            const lastQ = [...messages].reverse().find(m => m.role === 'ai')
+            if (lastQ && !isMuted) {
+              setOrbState('speaking')
+              speak(lastQ.text, { onEnd: () => setOrbState('idle') })
+            }
+          }}
+        />
       </header>
 
-      {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
-        <div className="max-w-4xl mx-auto space-y-6 pb-32">
-          {history.map((msg, idx) => (
-            <ConversationBubble 
-              key={msg.id} 
-              type={msg.type} 
-              text={msg.text} 
-              isLatest={idx === history.length - 1}
-              isStreaming={msg.isStreaming}
-            />
+      {/* ── Chat Transcript ──────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+
+          {/* Empty state — shown before first message */}
+          <AnimatePresence>
+            {messages.length === 0 && !isAiTyping && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-16 text-center space-y-4"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-700 to-teal-600 flex items-center justify-center text-white text-2xl font-bold shadow-card">
+                  F
+                </div>
+                <p className="text-base font-display font-semibold text-navy-700">
+                  {t.convAdvisorReady}
+                </p>
+                <p className="text-sm text-warm-500 max-w-xs">
+                  {t.convAdvisorSub}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Messages */}
+          {messages.map(m => (
+            <ConversationBubble key={m.id} role={m.role} text={m.text} />
           ))}
-          {/* Show loader only when processing and no streaming message visible */}
-          {isProcessing && !streamingMsgIdRef.current && history.length === 0 && (
-            <div className="flex justify-start">
-              <div className="glass-panel px-6 py-4 rounded-2xl rounded-tl-sm border-l-2 border-indigo-400 flex items-center gap-3 text-indigo-300">
-                <Loader2 size={18} className="animate-spin" />
-                Connecting to AI...
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+
+          {/* AI typing indicator */}
+          <AnimatePresence>
+            {isAiTyping && (
+              <motion.div
+                key="typing-indicator"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="flex items-end gap-2.5"
+              >
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-navy-700 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-md">
+                  F
+                </div>
+                <div className="bg-white border border-warm-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div ref={transcriptEndRef} className="h-1" />
         </div>
       </div>
 
-      {/* Control Area (Bottom fixed) */}
-      <div className="p-6 bg-background/80 backdrop-blur-xl border-t border-white/10 shrink-0">
-        <div className="max-w-4xl mx-auto">
-          {isComplete ? (
-            <div className="flex flex-col items-center justify-center py-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <p className="text-emerald-400 mb-6 font-medium">All information gathered successfully!</p>
-              <button 
-                onClick={() => navigate(`/report/${sessionId}`)}
-                className="btn-primary flex items-center gap-2 text-lg px-8"
+      {/* ── Bottom Input Area ────────────────────────────────────── */}
+      <div className="bg-white border-t border-warm-200 pt-3 pb-4 px-4 flex-shrink-0">
+        <div className="max-w-2xl mx-auto space-y-2">
+          <TextFallback
+            onSend={handleSendAnswer}
+            onMicClick={handleOrbClick}
+            disabled={orbState === 'thinking' || !sessionId}
+            orbState={orbState}
+          />
+          <p className="text-[10px] text-center text-warm-300 select-none">
+            {t.convInputHint}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Voice Overlay (listening mode) ───────────────────────── */}
+      <AnimatePresence>
+        {orbState === 'listening' && (
+          <motion.div
+            key="voice-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="absolute inset-0 z-50 bg-navy-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white"
+          >
+            <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center">
+              <div>
+                <h2 className="text-xl font-display font-semibold text-teal-300 mb-1">
+                  {t.convListeningTitle}
+                </h2>
+                <p className="text-sm text-navy-300">
+                  {t.convListeningSub}
+                </p>
+              </div>
+
+              <ListeningIndicator
+                state={orbState}
+                onClick={handleOrbClick}
+                disabled={!sessionId || isMuted}
+              />
+
+              {/* Live interim transcript */}
+              <AnimatePresence>
+                {interimText && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 w-full max-w-xs"
+                  >
+                    <p className="text-sm text-white/80 italic leading-relaxed">"{interimText}…"</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <button
+                onClick={() => {
+                  if (stopSttRef.current) {
+                    stopSttRef.current()
+                    stopSttRef.current = null
+                  }
+                  setInterimText('')
+                  setOrbState('idle')
+                }}
+                className="px-5 py-2 rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:text-white active:scale-95 transition-all text-xs font-medium"
               >
-                <FileText size={20} />
-                Generate My Report
+                {t.convListeningCancel}
               </button>
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-6">
-              {/* Voice Controls */}
-              <div className="flex flex-col items-center gap-4">
-                <ListeningIndicator isListening={isListening} />
-                
-                {/* Live Transcript Display removed - it now populates the main input box */}
-                
-                {isSpeechRecognitionSupported() ? (
-                  <MicButton 
-                    isListening={isListening} 
-                    onClick={toggleListening} 
-                    disabled={isProcessing}
-                  />
-                ) : (
-                  <p className="text-amber-400 text-sm mb-4">Voice recognition not supported in this browser. Please type below.</p>
-                )}
-              </div>
-
-              {/* Text Input */}
-              <form 
-                className="w-full flex gap-3 relative"
-                onSubmit={(e) => { e.preventDefault(); handleUserSubmit(textInput); }}
-              >
-                <input 
-                  type="text" 
-                  className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner"
-                  placeholder="Or type your answer here..."
-                  value={textInput}
-                  onChange={(e) => setTextInput(e.target.value)}
-                  disabled={isProcessing || isListening}
-                />
-                <button 
-                  type="submit"
-                  disabled={!textInput.trim() || isProcessing || isListening}
-                  className="absolute right-2 top-2 bottom-2 aspect-square rounded-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 flex items-center justify-center transition-colors"
-                >
-                  <Send size={18} className="text-white ml-1" />
-                </button>
-              </form>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
+  )
 }

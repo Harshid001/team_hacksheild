@@ -1,70 +1,75 @@
-export function isSpeechRecognitionSupported(): boolean {
-  return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+/**
+ * speechRecognition.ts
+ * Web Speech API wrapper (STT).
+ * Falls back gracefully when browser doesn't support SpeechRecognition.
+ */
+
+export type STTCallbacks = {
+  onInterim: (text: string) => void
+  onFinal: (text: string) => void
+  onError: (code: 'mic-denied' | 'no-speech' | 'unsupported' | 'other') => void
+  onStart?: () => void
+  onEnd?: () => void
 }
 
-export interface SpeechRecognitionWrapper {
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-  onResult: (transcript: string, isFinal: boolean) => void;
-  onError: (error: string) => void;
-  onEnd: (finalTranscriptText: string) => void;
-}
+const SpeechRecognitionAPI =
+  (window as any).SpeechRecognition ||
+  (window as any).webkitSpeechRecognition ||
+  null
 
-export function createSpeechRecognition(): SpeechRecognitionWrapper {
-  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-  
-  if (!SpeechRecognition) {
-    throw new Error('Speech Recognition is not supported in this browser.');
+export const isSTTSupported = (): boolean => !!SpeechRecognitionAPI
+
+export function createRecognizer(callbacks: STTCallbacks): (() => void) | null {
+  if (!SpeechRecognitionAPI) {
+    callbacks.onError('unsupported')
+    return null
   }
 
-  const recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = true;
-  
-  let finalTranscript = '';
+  const rec = new SpeechRecognitionAPI()
+  rec.continuous = false
+  rec.interimResults = true
+  const prefLang = localStorage.getItem('pref-lang') || 'en'
+  const langSpeechMap: Record<string, string> = {
+    en: 'en-IN',
+    hi: 'hi-IN',
+    bn: 'bn-IN',
+    sd: 'sd-IN',
+    ta: 'ta-IN',
+    te: 'te-IN',
+    ur: 'ur-PK',
+    pa: 'pa-IN',
+    gu: 'gu-IN',
+    kn: 'kn-IN',
+    ml: 'ml-IN',
+    mr: 'mr-IN'
+  }
+  rec.lang = langSpeechMap[prefLang] || 'en-IN'
+  rec.maxAlternatives = 1
 
-  let currentFullTranscript = '';
+  rec.onstart = () => callbacks.onStart?.()
+  rec.onend = () => callbacks.onEnd?.()
 
-  const wrapper: SpeechRecognitionWrapper = {
-    start: () => {
-      finalTranscript = '';
-      currentFullTranscript = '';
-      try {
-        recognition.start();
-      } catch (e: any) {
-        console.error("Speech recognition start error:", e);
-        wrapper.onError(e.message || String(e));
-      }
-    },
-    stop: () => recognition.stop(),
-    abort: () => recognition.abort(),
-    onResult: () => {}, // overridden by consumer
-    onError: () => {},  // overridden by consumer
-    onEnd: () => {}     // overridden by consumer
-  };
-
-  recognition.onresult = (event: any) => {
-    let interimTranscript = '';
-    
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript + ' ';
-      } else {
-        interimTranscript += event.results[i][0].transcript;
-      }
+  rec.onresult = (event: any) => {
+    let interim = '', final = ''
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const r = event.results[i]
+      if (r.isFinal) final += r[0].transcript
+      else interim += r[0].transcript
     }
-    currentFullTranscript = (finalTranscript + interimTranscript).trim();
-    wrapper.onResult(currentFullTranscript, event.results[event.results.length - 1].isFinal);
-  };
+    if (interim) callbacks.onInterim((final || interim).trim())
+    if (final) callbacks.onFinal(final.trim())
+  }
 
-  recognition.onerror = (event: any) => {
-    wrapper.onError(event.error);
-  };
+  rec.onerror = (event: any) => {
+    if (event.error === 'not-allowed' || event.error === 'permission-denied')
+      callbacks.onError('mic-denied')
+    else if (event.error === 'no-speech')
+      callbacks.onError('no-speech')
+    else
+      callbacks.onError('other')
+  }
 
-  recognition.onend = () => {
-    wrapper.onEnd(currentFullTranscript);
-  };
+  try { rec.start() } catch { /* already started */ }
 
-  return wrapper;
+  return () => { try { rec.abort() } catch { /* ignore */ } }
 }
