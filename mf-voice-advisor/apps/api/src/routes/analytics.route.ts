@@ -1,0 +1,2 @@
+// analytics routes placeholder
+export {};

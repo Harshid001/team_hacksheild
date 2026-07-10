@@ -1,0 +1,2 @@
+// UserProfile model placeholder
+export {};

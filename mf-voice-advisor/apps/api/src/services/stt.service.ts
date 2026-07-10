@@ -1,0 +1,2 @@
+// stt.service placeholder
+export {};

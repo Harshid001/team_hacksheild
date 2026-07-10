@@ -1,0 +1,2 @@
+// ollama.service placeholder
+export {};

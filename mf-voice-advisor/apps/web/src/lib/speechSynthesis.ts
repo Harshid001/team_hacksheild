@@ -1,0 +1,1 @@
+// speechSynthesis wrapper placeholder

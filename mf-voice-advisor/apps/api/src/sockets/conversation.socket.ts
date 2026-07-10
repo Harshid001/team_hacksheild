@@ -1,0 +1,2 @@
+// conversation socket placeholder
+export {};

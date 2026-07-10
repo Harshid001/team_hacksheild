@@ -1,0 +1,2 @@
+// Report model placeholder
+export {};

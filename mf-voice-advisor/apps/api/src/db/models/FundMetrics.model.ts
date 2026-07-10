@@ -1,0 +1,2 @@
+// FundMetrics model placeholder
+export {};
