@@ -299,19 +299,14 @@ export async function startChat(): Promise<{
         } else if (chunk.type === 'done') {
           fullResponse = cleanResponse(fullResponse);
           if (!fullResponse) {
-             // Fallback if model generated nothing but whitespace/think tags
-             fullResponse = "Hello! I'm your friendly mutual fund advisor. How can I help you today?";
-             yield { type: 'token', content: fullResponse };
+            throw new Error("Model generated empty response");
           }
           yield { type: 'done', content: fullResponse, finishReason: chunk.finishReason };
         }
       }
     } catch (err: any) {
       if (!fullResponse) {
-        // Fallback on error
-        fullResponse = "Hello! I'm your friendly mutual fund advisor. How can I help you today?";
-        yield { type: 'token', content: fullResponse };
-        yield { type: 'done', content: fullResponse, finishReason: 'stop' };
+        throw err;
       } else {
         throw err;
       }
@@ -357,6 +352,7 @@ export async function* streamChatResponse(
   let toolCallsExecuted: Array<{ name: string; args: any; result: any }> = [];
   let hasToolCalls = false;
   let pendingToolCalls: Array<{ id: string; name: string; args: string }> = [];
+  let isProfileComplete = false;
 
   // First pass — stream and collect
   for await (const chunk of chatMessagesStream(messages, { temperature: 0.7, num_predict: 2048 }, TOOLS)) {
@@ -375,7 +371,7 @@ export async function* streamChatResponse(
       if (!hasToolCalls) {
         // Clean the full response
         fullResponse = cleanResponse(fullResponse);
-        yield { type: 'done', content: fullResponse, finishReason: chunk.finishReason };
+        yield { type: 'done', content: fullResponse, finishReason: chunk.finishReason, profileComplete: isProfileComplete };
       }
     }
   }
@@ -393,6 +389,10 @@ export async function* streamChatResponse(
       // Execute the tool
       const toolResult = await handleToolCall(sessionId, tc.name, args);
       toolCallsExecuted.push({ name: tc.name, args, result: toolResult });
+
+      if (toolResult?.isComplete) {
+        isProfileComplete = true;
+      }
 
       // Yield tool call info to the frontend
       yield {
@@ -435,7 +435,7 @@ export async function* streamChatResponse(
       } else if (chunk.type === 'done') {
         continuationResponse = cleanResponse(continuationResponse);
         fullResponse = continuationResponse;
-        yield { type: 'done', content: continuationResponse, finishReason: chunk.finishReason };
+        yield { type: 'done', content: continuationResponse, finishReason: chunk.finishReason, profileComplete: isProfileComplete };
       }
     }
   }

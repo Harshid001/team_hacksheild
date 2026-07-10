@@ -117,8 +117,8 @@ function classifyError(error: any, model: string): OllamaError {
     return new OllamaError(
       'CONNECTION_REFUSED',
       `Cannot connect to Ollama. Is it running?\n` +
-        `  Start it with: ollama serve\n` +
-        `  Expected at: ${getBaseUrl()}`,
+      `  Start it with: ollama serve\n` +
+      `  Expected at: ${getBaseUrl()}`,
       model
     );
   }
@@ -134,8 +134,8 @@ function classifyError(error: any, model: string): OllamaError {
     return new OllamaError(
       'TIMEOUT',
       `Ollama request timed out (model: ${model}). ` +
-        `If ${model} is too slow, switch to a smaller model via OLLAMA_MODEL in .env ` +
-        `(e.g., OLLAMA_MODEL=llama3.2:3b)`,
+      `If ${model} is too slow, switch to a smaller model via OLLAMA_MODEL in .env ` +
+      `(e.g., OLLAMA_MODEL=llama3.2:3b)`,
       model
     );
   }
@@ -148,8 +148,8 @@ function classifyError(error: any, model: string): OllamaError {
     return new OllamaError(
       'MODEL_NOT_FOUND',
       `Model "${model}" not found in Ollama.\n` +
-        `  Pull it with: ollama pull ${model}\n` +
-        `  Or change OLLAMA_MODEL in .env to a model you have installed.`,
+      `  Pull it with: ollama pull ${model}\n` +
+      `  Or change OLLAMA_MODEL in .env to a model you have installed.`,
       model,
       404
     );
@@ -266,6 +266,7 @@ export interface StreamChunk {
     args: string; // JSON string
   };
   finishReason?: string;
+  profileComplete?: boolean;
 }
 
 /**
@@ -304,7 +305,7 @@ export async function* chatMessagesStream(
     // Accumulate tool calls from stream chunks
     const toolCallAccumulator: Map<number, { id: string; name: string; args: string }> = new Map();
 
-    for await (const chunk of stream as AsyncIterable<ChatCompletionChunk>) {
+    for await (const chunk of stream as unknown as AsyncIterable<ChatCompletionChunk>) {
       const choice = chunk.choices?.[0];
       if (!choice) continue;
 
