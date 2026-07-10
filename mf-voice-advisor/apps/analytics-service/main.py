@@ -286,7 +286,7 @@ if __name__ == "__main__":
     import sys
     import socket
 
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 8005))
     
     # Manually check if the port is available before starting uvicorn,
     # because uvicorn catches the exception internally when reload=True.
