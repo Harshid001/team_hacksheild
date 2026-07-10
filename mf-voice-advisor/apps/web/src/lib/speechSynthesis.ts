@@ -23,11 +23,24 @@ export function speak(text: string, opts: TTSOptions = {}): void {
   utterance.rate = opts.rate ?? 0.95
   utterance.pitch = opts.pitch ?? 1.0
 
-  // Prefer a natural-sounding en voice if available
+  utterance.volume = 1.0 // Loud voice
+
+  // Ensure voices are loaded (they sometimes load asynchronously)
   const voices = window.speechSynthesis.getVoices()
-  const preferred = voices.find(v =>
-    v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural'))
+  
+  // Prefer a male AI voice
+  let preferred = voices.find(v => 
+    v.lang.startsWith('en') && 
+    (v.name.toLowerCase().includes('male') || v.name.includes('Google UK English Male'))
   )
+
+  // Fallback to any Google/Natural English voice if male voice isn't found
+  if (!preferred) {
+    preferred = voices.find(v =>
+      v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural'))
+    )
+  }
+
   if (preferred) utterance.voice = preferred
 
   utterance.onstart = () => opts.onStart?.()

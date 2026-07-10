@@ -33,8 +33,8 @@ export default function ReportCard({ recommendation }: Props) {
         <div className="flex items-center gap-3 flex-1">
           <span className="text-2xl" aria-hidden="true">{emoji}</span>
           <div>
-            <h3 className="font-display font-semibold text-navy-800 text-lg leading-tight">{categoryName}</h3>
-            <p className="text-warm-500 text-xs mt-0.5">{description}</p>
+            <h3 className="font-display font-semibold text-slate-800 text-lg leading-tight">{categoryName}</h3>
+            <p className="text-gray-500 text-xs mt-0.5">{description}</p>
           </div>
         </div>
         <div className="flex items-center self-start sm:self-auto gap-2">
@@ -55,7 +55,7 @@ export default function ReportCard({ recommendation }: Props) {
                  </svg>
                  Real Historical Data
                </span>
-               <span className="text-xs text-warm-400 font-medium">Computed from mfapi.in</span>
+               <span className="text-xs text-gray-400 font-medium">Computed from mfapi.in</span>
              </div>
           </div>
 
@@ -81,7 +81,7 @@ export default function ReportCard({ recommendation }: Props) {
              </div>
              <button
                onClick={() => setShowAiExp(!showAiExp)}
-               className="text-xs text-warm-500 hover:text-navy-600 transition-colors flex items-center gap-1"
+               className="text-xs text-gray-500 hover:text-slate-600 transition-colors flex items-center gap-1"
                aria-expanded={showAiExp}
              >
                {showAiExp ? 'Hide' : 'Show'}
@@ -99,7 +99,7 @@ export default function ReportCard({ recommendation }: Props) {
                  exit={{ height: 0, opacity: 0 }}
                  className="overflow-hidden"
                >
-                 <div className="bg-violet-50/50 border border-violet-100 rounded-xl p-4 text-sm text-navy-800 leading-relaxed">
+                 <div className="bg-violet-50/50 border border-violet-100 rounded-xl p-4 text-sm text-slate-800 leading-relaxed">
                    {aiExplanation}
                  </div>
                </motion.div>
@@ -115,18 +115,18 @@ export default function ReportCard({ recommendation }: Props) {
 function MetricBox({ label, value, tooltip }: { label: string; value: string; tooltip: string }) {
   return (
     <div className="tooltip-container group flex flex-col justify-center">
-      <div className="flex items-center gap-1 mb-1 text-warm-500">
+      <div className="flex items-center gap-1 mb-1 text-gray-500">
         <span className="text-[10px] font-semibold uppercase tracking-wide">{label}</span>
-        <svg className="w-3 h-3 cursor-help text-warm-400 group-hover:text-teal-600 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+        <svg className="w-3 h-3 cursor-help text-gray-400 group-hover:text-blue-600 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <div className="font-display font-bold text-navy-700 text-lg">{value}</div>
+      <div className="font-display font-bold text-slate-700 text-lg">{value}</div>
 
       {/* Tooltip */}
-      <div className="tooltip-box absolute bottom-full left-0 mb-2 w-48 bg-navy-800 text-white text-xs rounded-lg p-2.5 shadow-lg z-10 pointer-events-none">
+      <div className="tooltip-box absolute bottom-full left-0 mb-2 w-48 bg-slate-800 text-white text-xs rounded-lg p-2.5 shadow-lg z-10 pointer-events-none">
         {tooltip}
-        <div className="absolute top-full left-4 w-2 h-2 bg-navy-800 transform rotate-45 -mt-1"></div>
+        <div className="absolute top-full left-4 w-2 h-2 bg-slate-800 transform rotate-45 -mt-1"></div>
       </div>
     </div>
   )

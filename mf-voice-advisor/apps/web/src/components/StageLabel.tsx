@@ -24,21 +24,21 @@ export default function StageLabel({ stageIndex }: Props) {
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="text-[11px] font-semibold text-navy-600 tracking-wide uppercase hidden sm:block"
+          className="text-[11px] font-semibold text-slate-600 tracking-wide uppercase hidden sm:block"
           role="status"
           aria-live="polite"
         >
           {label}
         </motion.span>
-        <span className="text-[10px] text-warm-400 tabular-nums">
+        <span className="text-[10px] text-gray-400 tabular-nums">
           {safeIndex + 1}/{TOTAL_STAGES}
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className="w-28 sm:w-36 h-1 bg-warm-200 rounded-full overflow-hidden">
+      <div className="w-28 sm:w-36 h-1 bg-gray-200 rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-gradient-to-r from-navy-600 to-teal-500 rounded-full"
+          className="h-full bg-gradient-to-r from-slate-600 to-blue-500 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.5, ease: 'easeOut' }}

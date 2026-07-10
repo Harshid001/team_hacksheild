@@ -66,13 +66,13 @@ export default function ReportPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-navy-900 text-white p-6 relative overflow-hidden">
+      <main className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white p-6 relative overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-          <div className="w-96 h-96 bg-teal-500 rounded-full blur-[120px] animate-pulse" />
+          <div className="w-96 h-96 bg-blue-500 rounded-full blur-[120px] animate-pulse" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center max-w-md text-center">
-          <svg className="w-16 h-16 text-teal-400 animate-spin mb-8" viewBox="0 0 24 24" fill="none">
+          <svg className="w-16 h-16 text-blue-400 animate-spin mb-8" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
@@ -89,7 +89,7 @@ export default function ReportPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="text-warm-300 text-sm absolute font-medium"
+                className="text-gray-300 text-sm absolute font-medium"
               >
                 {loadingSteps[stepIndex]}
               </motion.p>
@@ -102,7 +102,7 @@ export default function ReportPage() {
 
   if (error || !report) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-warm-50 flex-col gap-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 flex-col gap-4">
         <p className="text-red-600 font-medium">
           {lang === 'hi' ? "रिपोर्ट लोड करने में विफल।" : "Failed to load report."}
         </p>
@@ -170,7 +170,7 @@ export default function ReportPage() {
   })
 
   return (
-    <main className="min-h-screen bg-warm-50 py-10 px-4 sm:px-6">
+    <main className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto space-y-10">
         {/* Informational Disclaimer Banner at the top */}
         <DisclaimerBanner variant="informational" />
@@ -178,16 +178,16 @@ export default function ReportPage() {
         {/* Profile Summary */}
         <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-navy-800 text-white rounded-2xl p-6 sm:p-8 shadow-card flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left"
+          className="bg-slate-800 text-white rounded-2xl p-6 sm:p-8 shadow-card flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left"
         >
-          <div className="w-16 h-16 bg-navy-700 rounded-full flex items-center justify-center text-3xl flex-shrink-0">
+          <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center text-3xl flex-shrink-0">
             {report.profileSummary.emoji}
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2">
               {profileHeadline}
             </h1>
-            <p className="text-navy-200 leading-relaxed max-w-2xl text-sm sm:text-base">
+            <p className="text-slate-200 leading-relaxed max-w-2xl text-sm sm:text-base">
               {profileDescription}
             </p>
           </div>
@@ -195,10 +195,10 @@ export default function ReportPage() {
 
         {/* Categories Header */}
         <div className="text-center sm:text-left">
-          <h2 className="text-xl font-display font-semibold text-navy-800">
+          <h2 className="text-xl font-display font-semibold text-slate-800">
             {lang === 'hi' ? "फंड श्रेणियां जो आपके प्रोफाइल से मेल खाती हैं" : "Fund Categories That Match Your Profile"}
           </h2>
-          <p className="text-sm text-warm-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             {lang === 'hi'
               ? "आपके बताए गए लक्ष्यों और जोखिम आराम के आधार पर, इस प्रकार के फंड ऐतिहासिक रूप से समान प्रोफाइल के साथ संरेखित रहे हैं।"
               : "Based on your stated goals and risk comfort, these types of funds have historically aligned with similar profiles."}
@@ -213,8 +213,8 @@ export default function ReportPage() {
         </div>
 
         {/* Footer */}
-        <footer className="text-center pt-8 border-t border-warm-200">
-          <p className="text-xs text-warm-400 italic mb-4">
+        <footer className="text-center pt-8 border-t border-gray-200">
+          <p className="text-xs text-gray-400 italic mb-4">
             {lang === 'hi'
               ? "याद रखें: यह एक शैक्षिक विवरण है, खरीदने की सिफारिश नहीं।"
               : "Remember: This is an educational breakdown, not a recommendation to buy."}

@@ -35,12 +35,12 @@ export default function DisclaimerBanner({ variant, acknowledged = false, onAckn
         <h2 className="font-display font-semibold text-sm uppercase tracking-wider">{title}</h2>
       </div>
       
-      <p className="text-sm text-warm-600 leading-relaxed">
+      <p className="text-sm text-gray-600 leading-relaxed">
         {disclaimerText}
       </p>
 
       {onAcknowledgeChange && (
-        <label className="flex items-start gap-3 cursor-pointer group mt-4 pt-3 border-t border-warm-150">
+        <label className="flex items-start gap-3 cursor-pointer group mt-4 pt-3 border-t border-gray-150">
           <div className="relative mt-0.5 flex-shrink-0">
             <input
               type="checkbox"
@@ -52,8 +52,8 @@ export default function DisclaimerBanner({ variant, acknowledged = false, onAckn
             <div
               className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
                 acknowledged 
-                  ? 'bg-teal-600 border-teal-600' 
-                  : 'border-warm-300 group-hover:border-teal-400'
+                  ? 'bg-blue-600 border-blue-600' 
+                  : 'border-gray-300 group-hover:border-blue-400'
               }`}
               aria-hidden="true"
             >
@@ -64,7 +64,7 @@ export default function DisclaimerBanner({ variant, acknowledged = false, onAckn
               )}
             </div>
           </div>
-          <span className="text-xs sm:text-sm text-warm-500 select-none leading-relaxed">
+          <span className="text-xs sm:text-sm text-gray-500 select-none leading-relaxed">
             {checkboxLabel}
           </span>
         </label>
