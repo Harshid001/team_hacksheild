@@ -102,8 +102,8 @@ export default function ReportPage() {
 
   if (error || !report) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 flex-col gap-4">
-        <p className="text-red-600 font-medium">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 flex-col gap-4">
+        <p className="text-red-600 dark:text-red-400 font-medium">
           {lang === 'hi' ? "रिपोर्ट लोड करने में विफल।" : "Failed to load report."}
         </p>
         <Link to="/" className="btn-secondary">
@@ -170,7 +170,7 @@ export default function ReportPage() {
   })
 
   return (
-    <main className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6">
+    <main className="min-h-screen bg-gray-50 dark:bg-slate-900 py-10 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto space-y-10">
         {/* Informational Disclaimer Banner at the top */}
         <DisclaimerBanner variant="informational" />
@@ -178,7 +178,7 @@ export default function ReportPage() {
         {/* Profile Summary */}
         <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-slate-800 text-white rounded-2xl p-6 sm:p-8 shadow-card flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left"
+          className="bg-slate-800 dark:bg-slate-800 text-white rounded-2xl p-6 sm:p-8 shadow-card flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left border border-slate-700"
         >
           <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center text-3xl flex-shrink-0">
             {report.profileSummary.emoji}
@@ -195,10 +195,10 @@ export default function ReportPage() {
 
         {/* Categories Header */}
         <div className="text-center sm:text-left">
-          <h2 className="text-xl font-display font-semibold text-slate-800">
+          <h2 className="text-xl font-display font-semibold text-slate-800 dark:text-white">
             {lang === 'hi' ? "फंड श्रेणियां जो आपके प्रोफाइल से मेल खाती हैं" : "Fund Categories That Match Your Profile"}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {lang === 'hi'
               ? "आपके बताए गए लक्ष्यों और जोखिम आराम के आधार पर, इस प्रकार के फंड ऐतिहासिक रूप से समान प्रोफाइल के साथ संरेखित रहे हैं।"
               : "Based on your stated goals and risk comfort, these types of funds have historically aligned with similar profiles."}
@@ -212,9 +212,8 @@ export default function ReportPage() {
           ))}
         </div>
 
-        {/* Footer */}
-        <footer className="text-center pt-8 border-t border-gray-200">
-          <p className="text-xs text-gray-400 italic mb-4">
+        <footer className="text-center pt-8 border-t border-gray-200 dark:border-slate-800">
+          <p className="text-xs text-gray-400 dark:text-gray-500 italic mb-4">
             {lang === 'hi'
               ? "याद रखें: यह एक शैक्षिक विवरण है, खरीदने की सिफारिश नहीं।"
               : "Remember: This is an educational breakdown, not a recommendation to buy."}

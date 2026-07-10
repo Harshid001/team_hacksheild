@@ -18,7 +18,7 @@ export default function ConversationBubble({ role, text, isTyping = false }: Pro
         transition={{ duration: 0.3 }}
         className="flex justify-start pl-10"
       >
-        <span className="text-xs text-gray-500 italic px-3 py-1.5 bg-gray-100/70 border border-gray-200/60 rounded-xl max-w-sm leading-relaxed">
+        <span className="text-xs text-gray-500 dark:text-gray-400 italic px-3 py-1.5 bg-gray-100/70 dark:bg-slate-800/70 border border-gray-200/60 dark:border-slate-700/60 rounded-xl max-w-sm leading-relaxed">
           💡 {text}
         </span>
       </motion.div>
@@ -35,7 +35,7 @@ export default function ConversationBubble({ role, text, isTyping = false }: Pro
       {/* AI Avatar */}
       {!isUser && (
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-md">
-          F
+          M
         </div>
       )}
 
@@ -45,7 +45,7 @@ export default function ConversationBubble({ role, text, isTyping = false }: Pro
           max-w-[80%] sm:max-w-[72%] px-4 py-3 text-sm leading-relaxed shadow-sm
           ${isUser
             ? 'bg-gradient-to-br from-slate-700 to-blue-700 text-white rounded-2xl rounded-br-sm'
-            : 'bg-white border border-gray-200 text-slate-700 rounded-2xl rounded-bl-sm'
+            : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-slate-700 dark:text-white rounded-2xl rounded-bl-sm'
           }
         `}
         role={isUser ? undefined : 'status'}
@@ -80,7 +80,7 @@ export default function ConversationBubble({ role, text, isTyping = false }: Pro
 
       {/* User Avatar */}
       {isUser && (
-        <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-[10px] font-bold flex-shrink-0">
+        <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 text-[10px] font-bold flex-shrink-0">
           YOU
         </div>
       )}

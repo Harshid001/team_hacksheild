@@ -23,7 +23,7 @@ export default function ReportCard({ recommendation }: Props) {
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="solid-card overflow-hidden"
+      className="solid-card dark:bg-slate-800 dark:border-slate-700 overflow-hidden"
     >
       {/* Header */}
       <div
@@ -33,8 +33,8 @@ export default function ReportCard({ recommendation }: Props) {
         <div className="flex items-center gap-3 flex-1">
           <span className="text-2xl" aria-hidden="true">{emoji}</span>
           <div>
-            <h3 className="font-display font-semibold text-slate-800 text-lg leading-tight">{categoryName}</h3>
-            <p className="text-gray-500 text-xs mt-0.5">{description}</p>
+            <h3 className="font-display font-semibold text-slate-800 dark:text-white text-lg leading-tight">{categoryName}</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{description}</p>
           </div>
         </div>
         <div className="flex items-center self-start sm:self-auto gap-2">
@@ -59,7 +59,7 @@ export default function ReportCard({ recommendation }: Props) {
              </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-blue-50/40 border border-blue-100 rounded-xl p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-blue-50/40 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-xl p-4">
             <MetricBox label="5Y CAGR" value={`${metrics.cagr5yr}%`} tooltip="Average annual growth rate over the past 5 years. Higher is better." />
             <MetricBox label="Volatility" value={`${metrics.volatilityAnnualized}%`} tooltip="How much the fund's returns bounce up and down. Lower means a smoother ride." />
             <MetricBox label="Sharpe Ratio" value={metrics.sharpeRatio.toString()} tooltip="Return earned per unit of risk. Over 1.0 is generally considered good." />
@@ -81,7 +81,7 @@ export default function ReportCard({ recommendation }: Props) {
              </div>
              <button
                onClick={() => setShowAiExp(!showAiExp)}
-               className="text-xs text-gray-500 hover:text-slate-600 transition-colors flex items-center gap-1"
+               className="text-xs text-gray-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center gap-1"
                aria-expanded={showAiExp}
              >
                {showAiExp ? 'Hide' : 'Show'}
@@ -99,7 +99,7 @@ export default function ReportCard({ recommendation }: Props) {
                  exit={{ height: 0, opacity: 0 }}
                  className="overflow-hidden"
                >
-                 <div className="bg-violet-50/50 border border-violet-100 rounded-xl p-4 text-sm text-slate-800 leading-relaxed">
+                 <div className="bg-violet-50/50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-900/50 rounded-xl p-4 text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
                    {aiExplanation}
                  </div>
                </motion.div>
@@ -115,13 +115,13 @@ export default function ReportCard({ recommendation }: Props) {
 function MetricBox({ label, value, tooltip }: { label: string; value: string; tooltip: string }) {
   return (
     <div className="tooltip-container group flex flex-col justify-center">
-      <div className="flex items-center gap-1 mb-1 text-gray-500">
+      <div className="flex items-center gap-1 mb-1 text-gray-500 dark:text-gray-400">
         <span className="text-[10px] font-semibold uppercase tracking-wide">{label}</span>
-        <svg className="w-3 h-3 cursor-help text-gray-400 group-hover:text-blue-600 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+        <svg className="w-3 h-3 cursor-help text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <div className="font-display font-bold text-slate-700 text-lg">{value}</div>
+      <div className="font-display font-bold text-slate-700 dark:text-slate-200 text-lg">{value}</div>
 
       {/* Tooltip */}
       <div className="tooltip-box absolute bottom-full left-0 mb-2 w-48 bg-slate-800 text-white text-xs rounded-lg p-2.5 shadow-lg z-10 pointer-events-none">

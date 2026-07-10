@@ -118,25 +118,33 @@ export async function sendAnswer(
 // ── Report ────────────────────────────────────────────────────────────────────
 
 /**
- * POST /api/report/:sessionId/generate
+ * POST /api/report/generate
  * Triggers analytics computation + Ollama report composition.
  * Long-running (10-30 s). ProcessingPage polls this.
  */
-export async function generateReport(sessionId: string): Promise<Report> {
+export async function generateReport(sessionId?: string): Promise<Report> {
+  if (USE_MOCK) {
+    await delay(2000)
+    return getMockReport(sessionId || 'mock-session')
+  }
 
-  const res = await fetch(`${BASE}/report/${sessionId}/generate`, { method: 'POST' })
+  const res = await fetch(`${BASE}/report/generate`, { method: 'POST' })
   if (!res.ok) throw new Error('Failed to generate report')
   const { report } = await res.json()
   return report
 }
 
 /**
- * GET /api/report/:sessionId
+ * GET /api/report
  * Fetch an already-generated report.
  */
-export async function fetchReport(sessionId: string): Promise<Report> {
+export async function fetchReport(sessionId?: string): Promise<Report> {
+  if (USE_MOCK) {
+    await delay(500)
+    return getMockReport(sessionId || 'mock-session')
+  }
 
-  const res = await fetch(`${BASE}/report/${sessionId}`)
+  const res = await fetch(`${BASE}/report`)
   if (!res.ok) throw new Error('Failed to fetch report')
   const { report } = await res.json()
   return report

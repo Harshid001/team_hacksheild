@@ -1,13 +1,5 @@
-/**
- * LandingPage.tsx — FundWise Marketing & Pitch Page
- *
- * STATIC/STANDALONE — no API calls, no MOCK_MODE.
- * This page is purely presentational and routes into the real app via /start.
- * Primary CTA always goes to /start (DisclaimerPage), never directly to /conversation.
- */
-
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import {
   ResponsiveContainer, AreaChart, Area,
@@ -15,6 +7,10 @@ import {
 } from 'recharts'
 import { TRANSLATIONS } from '../lib/translations'
 import { CALC_TRANSLATIONS } from '../lib/calculatorTranslations'
+import { useTranslation } from '../context/TranslationContext'
+import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
+import ProfileDropdown from '../components/ProfileDropdown'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -78,6 +74,9 @@ const LANGUAGES = [
 type LangCode = 'en'|'hi'|'bn'|'sd'|'ta'|'te'|'ur'|'pa'|'gu'|'kn'|'ml'|'mr'
 
 export default function LandingPage() {
+  const navigate = useNavigate()
+  const { theme, setTheme } = useTheme()
+
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
@@ -214,42 +213,57 @@ export default function LandingPage() {
   const estimatedReturns = Math.max(0, futureValue - totalInvested)
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 selection:bg-blue-100">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-blue-100 dark:selection:bg-blue-900/50">
 
       {/* ════════════════════════════════════════════════════════════
           NAV BAR
       ════════════════════════════════════════════════════════════ */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
-          {/* Wordmark */}
-          <div className="flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center shadow">
-              <span className="text-white font-display font-bold text-sm">F</span>
-            </div>
-            <span className="font-display font-bold text-lg text-slate-800">FundWise</span>
+          {/* Profile Logo & Wordmark */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <ProfileDropdown onLoginClick={() => navigate('/signup')} />
+            <span className="font-display font-bold text-lg text-slate-800 dark:text-white">MF Advisor</span>
           </div>
 
           {/* Nav links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-            <button onClick={() => scrollTo('how-it-works')} className="hover:text-slate-800 transition-colors">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-gray-300">
+            <button onClick={() => scrollTo('how-it-works')} className="hover:text-slate-800 dark:hover:text-white transition-colors">
               {t.navHowItWorks}
             </button>
-            <button onClick={() => scrollTo('integrity')} className="hover:text-slate-800 transition-colors">
+            <button onClick={() => scrollTo('integrity')} className="hover:text-slate-800 dark:hover:text-white transition-colors">
               {t.navIntegrity}
             </button>
-            <button onClick={() => scrollTo('trust')} className="hover:text-slate-800 transition-colors">
+            <button onClick={() => scrollTo('trust')} className="hover:text-slate-800 dark:hover:text-white transition-colors">
               {t.navTrust}
             </button>
           </nav>
 
           {/* Language selector & CTA */}
           <div className="flex items-center gap-3">
+            
+            {/* ── Theme Toggle ── */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 dark:border-slate-700 text-gray-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-slate-800 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
             {/* ── Language Dropdown ── */}
             <div ref={langRef} className="relative">
               <button
                 id="lang-dropdown-btn"
                 onClick={() => setLangOpen(prev => !prev)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-gray-600 hover:text-slate-800 hover:border-slate-400 bg-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 select-none"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-slate-800 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-slate-800 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 select-none"
                 aria-haspopup="listbox"
                 aria-expanded={langOpen}
                 aria-label="Select language"
@@ -271,7 +285,7 @@ export default function LandingPage() {
                 <div
                   role="listbox"
                   aria-label="Language options"
-                  className="absolute right-0 mt-1.5 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1.5 overflow-hidden"
+                  className="absolute right-0 mt-1.5 w-48 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1.5 overflow-hidden"
                   style={{ animation: 'fadeSlideDown 0.15s ease' }}
                 >
                   {LANGUAGES.map(l => (
@@ -285,8 +299,8 @@ export default function LandingPage() {
                       }}
                       className={`w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-xs transition-colors ${
                         lang === l.code
-                          ? 'bg-blue-50 text-blue-700 font-semibold'
-                          : 'text-gray-700 hover:bg-gray-50 font-medium'
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 font-medium'
                       }`}
                     >
                       <span className="text-base leading-none">{l.flag}</span>
