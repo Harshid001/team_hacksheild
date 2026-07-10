@@ -145,4 +145,8 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-start();
+if (process.env.VERCEL !== '1') {
+  start();
+}
+
+export default app;
