@@ -113,3 +113,55 @@ export interface StartConversationResponse {
   firstQuestion: string;
   fieldTargeted: string;
 }
+
+// ---------------------------------------------------------------------------
+// Fund Recommendation and Report Types (Vite Frontend & Node/Express Backend)
+// ---------------------------------------------------------------------------
+
+export interface FundRecommendation {
+  category: string;
+  categoryName: string;
+  emoji: string;
+  description: string;
+  color: string;
+  riskTag: string;
+  representativeMetrics: {
+    schemeCode: string;
+    schemeName: string;
+    category: string;
+    cagr1yr: number;
+    cagr3yr: number;
+    cagr5yr: number;
+    cagr10yr: number;
+    volatilityAnnualized: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+    expenseRatio: number;
+    aum: number;
+    computedAt: string;
+  };
+  topSchemes: {
+    schemeCode: string;
+    schemeName: string;
+    category: string;
+    amcName: string;
+  }[];
+  aiExplanation: string;
+  suitabilityScore: number;
+}
+
+export interface Report {
+  sessionId: string;
+  profileSummary: {
+    riskLevel: string;
+    horizon: string;
+    goal: string;
+    headline: string;
+    description: string;
+    emoji: string;
+  };
+  recommendedFunds: FundRecommendation[];
+  generatedAt: string;
+  disclaimer: string;
+}
+
