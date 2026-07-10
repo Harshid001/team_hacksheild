@@ -31,6 +31,14 @@ from services.cache import (
     ensure_indexes,
 )
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Create required MongoDB indexes on service start."""
+    ensure_indexes()
+    yield
+
 # ---------------------------------------------------------------------------
 # App factory
 # ---------------------------------------------------------------------------
@@ -38,6 +46,7 @@ app = FastAPI(
     title="Analytics Service",
     description="Compute risk/return metrics for Indian mutual-fund NAV series.",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # ---- CORS (allow everything for local dev) --------------------------------
@@ -66,14 +75,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
     )
 
 
-# ---------------------------------------------------------------------------
-# Startup — ensure MongoDB indexes
-# ---------------------------------------------------------------------------
-
-@app.on_event("startup")
-async def on_startup():
-    """Create required MongoDB indexes on service start."""
-    ensure_indexes()
+# (Removed deprecated startup event; handled by lifespan)
 
 
 # ---------------------------------------------------------------------------
@@ -280,5 +282,23 @@ async def get_all_cached():
 
 if __name__ == "__main__":
     import uvicorn
+    import os
+    import sys
+    import socket
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    
+    # Manually check if the port is available before starting uvicorn,
+    # because uvicorn catches the exception internally when reload=True.
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(("0.0.0.0", port))
+        except OSError:
+            print(f"\n{'='*70}", file=sys.stderr)
+            print(f"❌ ERROR: Port {port} is already in use by another application.", file=sys.stderr)
+            print(f"To run this service on a different port (e.g., 8001), please run:", file=sys.stderr)
+            print(f"\n    $env:PORT='8001'; python main.py\n", file=sys.stderr)
+            print(f"{'='*70}\n", file=sys.stderr)
+            sys.exit(1)
+
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
