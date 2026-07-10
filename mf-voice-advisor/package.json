@@ -1,0 +1,5 @@
+{
+  "name": "mf-voice-advisor-workspace",
+  "private": true,
+  "workspaces": ["apps/*","packages/*"]
+}

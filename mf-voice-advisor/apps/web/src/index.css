@@ -1,0 +1,356 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Google Fonts — Inter (body) + Outfit (display/headings)
+═══════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════
+   BASE LAYER
+═══════════════════════════════════════════════════════════════════ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-white text-navy-800 font-sans;
+    min-height: 100vh;
+    line-height: 1.75;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+    line-height: 1.25;
+  }
+
+  /* Improved focus ring for accessibility */
+  :focus-visible {
+    outline: 2px solid #0d9488;
+    outline-offset: 2px;
+  }
+
+  /* Smooth image rendering */
+  img, svg {
+    display: block;
+  }
+
+  /* Selection color */
+  ::selection {
+    @apply bg-teal-100 text-teal-900;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COMPONENT LAYER
+═══════════════════════════════════════════════════════════════════ */
+@layer components {
+
+  /* ── Cards ───────────────────────────────────────────────────── */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl shadow-card;
+  }
+  .solid-card {
+    @apply bg-white border border-warm-200 rounded-2xl shadow-card;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-gradient-to-r from-navy-700 to-teal-600
+           text-white font-semibold px-6 py-3 rounded-xl
+           shadow-md hover:shadow-xl
+           transition-all duration-300 ease-out
+           hover:scale-[1.03] active:scale-[0.97]
+           focus-visible:outline-none
+           focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           border border-navy-200 text-navy-700 font-medium
+           px-5 py-2.5 rounded-xl bg-white
+           hover:bg-navy-50 hover:border-navy-300
+           transition-all duration-200
+           focus-visible:outline-none
+           focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-2;
+  }
+
+  .btn-icon {
+    @apply flex items-center justify-center w-11 h-11 rounded-full
+           border border-warm-200 bg-white text-navy-600
+           hover:bg-navy-50 hover:border-navy-300
+           transition-all duration-200
+           focus-visible:outline-none
+           focus-visible:ring-2 focus-visible:ring-navy-400;
+  }
+
+  /* ── Badges ──────────────────────────────────────────────────── */
+  .badge-computed {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold
+           bg-blue-50 text-blue-700 border border-blue-200
+           px-2.5 py-1 rounded-full;
+  }
+
+  .badge-ai {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold
+           bg-violet-50 text-violet-700 border border-violet-200
+           px-2.5 py-1 rounded-full;
+  }
+
+  .badge-teal {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold
+           bg-teal-50 text-teal-700 border border-teal-200
+           px-2.5 py-1 rounded-full;
+  }
+
+  /* ── Typography helpers ──────────────────────────────────────── */
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-[0.15em] text-teal-600 mb-3;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-navy-700 to-teal-600 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-light {
+    @apply bg-gradient-to-r from-teal-300 to-teal-400 bg-clip-text text-transparent;
+  }
+
+  /* ── Layout helpers ──────────────────────────────────────────── */
+  .section-container {
+    @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-container-lg {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* ── Page section dividers ───────────────────────────────────── */
+  .section-white {
+    @apply py-20 bg-white border-b border-warm-200;
+  }
+
+  .section-warm {
+    @apply py-20 bg-warm-50 border-b border-warm-200;
+  }
+
+  /* ── Nav link ────────────────────────────────────────────────── */
+  .nav-link {
+    @apply text-sm font-medium text-warm-600 hover:text-navy-800
+           transition-colors duration-200 relative
+           after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px
+           after:bg-teal-500 after:transition-all after:duration-300
+           hover:after:w-full;
+  }
+
+  /* ── Metric card ─────────────────────────────────────────────── */
+  .metric-card {
+    @apply bg-white rounded-xl px-3 py-2 border border-warm-100
+           shadow-sm text-center;
+  }
+
+  /* ── Feature card ────────────────────────────────────────────── */
+  .feature-card {
+    @apply solid-card p-6 h-full flex flex-col gap-3
+           hover:shadow-card-lg hover:-translate-y-0.5
+           transition-all duration-300 ease-out;
+  }
+
+  /* ── Divider ─────────────────────────────────────────────────── */
+  .divider {
+    @apply border-t border-warm-200 my-8;
+  }
+
+  /* ── Stat item ───────────────────────────────────────────────── */
+  .stat-value {
+    @apply font-display font-bold text-2xl text-navy-800 tabular-nums;
+  }
+
+  .stat-label {
+    @apply text-xs text-warm-500 font-medium mt-0.5;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UTILITIES LAYER
+═══════════════════════════════════════════════════════════════════ */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   VOICE ORB ANIMATIONS
+═══════════════════════════════════════════════════════════════════ */
+@keyframes orbPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 40px rgba(13, 148, 136, 0.35),
+      0 0 80px rgba(13, 148, 136, 0.15),
+      inset 0 0 20px rgba(255, 255, 255, 0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 80px rgba(13, 148, 136, 0.65),
+      0 0 120px rgba(13, 148, 136, 0.35),
+      inset 0 0 30px rgba(255, 255, 255, 0.08);
+  }
+}
+
+@keyframes orbListen {
+  0%, 100% {
+    box-shadow:
+      0 0 50px rgba(13, 148, 136, 0.50),
+      0 0 100px rgba(13, 148, 136, 0.25);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 100px rgba(13, 148, 136, 0.90),
+      0 0 180px rgba(13, 148, 136, 0.50);
+    transform: scale(1.04);
+  }
+}
+
+@keyframes waveBar {
+  0%, 100% { transform: scaleY(0.3); }
+  50%       { transform: scaleY(1); }
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Orb classes ─────────────────────────────────────────────────── */
+.orb-idle   { animation: orbPulse 4s ease-in-out infinite; }
+.orb-listen { animation: orbListen 1.2s ease-in-out infinite; }
+.orb-speak  { animation: orbPulse 1.8s ease-in-out infinite; }
+.orb-float  { animation: floatY 6s ease-in-out infinite; }
+
+/* ── Wave bars (listening indicator) ───────────────────────────── */
+.wave-bar {
+  display: inline-block;
+  width: 4px;
+  background: white;
+  border-radius: 2px;
+  animation: waveBar 0.8s ease-in-out infinite;
+}
+.wave-bar:nth-child(2) { animation-delay: 0.12s; }
+.wave-bar:nth-child(3) { animation-delay: 0.24s; }
+.wave-bar:nth-child(4) { animation-delay: 0.36s; }
+.wave-bar:nth-child(5) { animation-delay: 0.48s; }
+
+/* ── Shimmer effect ─────────────────────────────────────────────── */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOOLTIP
+═══════════════════════════════════════════════════════════════════ */
+.tooltip-container {
+  position: relative;
+}
+.tooltip-container .tooltip-box {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform: translateY(6px);
+  pointer-events: none;
+}
+.tooltip-container:hover .tooltip-box,
+.tooltip-container:focus-within .tooltip-box {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════════════════════════ */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #ddd8cf transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #ddd8cf;
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RECHARTS OVERRIDES
+═══════════════════════════════════════════════════════════════════ */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+.recharts-default-tooltip {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(30, 58, 95, 0.12) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LANDING PAGE — CTA SECTION FIX
+   The dot pattern overlay needs the parent to be relative
+═══════════════════════════════════════════════════════════════════ */
+.cta-section {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PRINT
+═══════════════════════════════════════════════════════════════════ */
+@media print {
+  .btn-primary, .btn-secondary, header, footer {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
