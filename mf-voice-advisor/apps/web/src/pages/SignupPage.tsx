@@ -28,7 +28,8 @@ export default function SignupPage() {
 
   const handleGoogleLogin = () => {
     // Redirect to backend OAuth flow
-    window.location.href = `${import.meta.env.DEV ? 'http://localhost:3000' : ''}/api/auth/google`
+    const isLocal = window.location.hostname === 'localhost';
+    window.location.href = `${isLocal ? 'http://localhost:3000' : ''}/api/auth/google`
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
