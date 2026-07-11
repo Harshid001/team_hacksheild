@@ -34,11 +34,34 @@ const server = http.createServer(app);
 // ---------------------------------------------------------------------------
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true, // Required for setting/reading httpOnly cookies
+  origin: (origin, callback) => {
+    if (!origin || origin.includes('team-hacksheild') || origin.includes('localhost')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
 }));
 app.use(express.json({ limit: '10mb' })); // Allow larger payloads for audio blobs
 app.use(cookieParser());
+
+// Ensure MongoDB is connected before any route handler runs (required on Vercel
+// where start() is skipped and each cold start must establish/reuse a connection).
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection middleware error:', error);
+    const requestPath = req.originalUrl || req.path;
+    if (requestPath.includes('/auth/google/callback')) {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      return res.redirect(`${frontendUrl}/signup?error=DatabaseUnavailable`);
+    }
+    res.status(503).json({ error: 'Database connection unavailable' });
+  }
+});
 
 // ---------------------------------------------------------------------------
 // REST Routes

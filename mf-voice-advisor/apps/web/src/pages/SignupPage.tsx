@@ -86,7 +86,8 @@ export default function SignupPage() {
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Authentication failed. Please try again.')
+      const msg = err.response?.data?.error || err.message || 'Authentication failed. Please try again.'
+      setError(`Error: ${msg}`)
     } finally {
       setLoading(false)
     }
