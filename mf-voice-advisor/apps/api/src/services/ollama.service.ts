@@ -92,6 +92,7 @@ export interface OllamaOptions {
   temperature?: number;
   top_p?: number;
   num_predict?: number;
+  num_ctx?: number;
   stop?: string[];
 }
 
@@ -198,7 +199,14 @@ export async function chatCompletion(
       max_tokens: options.num_predict ?? 1024,
       ...(options.stop ? { stop: options.stop } : {}),
       stream: false,
-    }, {
+    } as any;
+
+    if (options.num_ctx) {
+      createParams.num_ctx = options.num_ctx; // Some Ollama versions support it at root
+      createParams.extra_body = { options: { num_ctx: options.num_ctx } }; // Standard way for OpenAI client to pass non-standard args
+    }
+
+    const response = await client.chat.completions.create(createParams, {
       timeout: 120_000, // 2 minute timeout
     });
 
@@ -238,7 +246,14 @@ export async function* chatCompletionStream(
       max_tokens: options.num_predict ?? 1024,
       ...(options.stop ? { stop: options.stop } : {}),
       stream: true,
-    }, {
+    } as any;
+
+    if (options.num_ctx) {
+      createParams.num_ctx = options.num_ctx;
+      createParams.extra_body = { options: { num_ctx: options.num_ctx } };
+    }
+
+    const stream = await client.chat.completions.create(createParams, {
       timeout: 120_000,
     });
 
@@ -292,6 +307,11 @@ export async function* chatMessagesStream(
       ...(options.stop ? { stop: options.stop } : {}),
       stream: true,
     };
+
+    if (options.num_ctx) {
+      createParams.num_ctx = options.num_ctx;
+      createParams.extra_body = { options: { num_ctx: options.num_ctx } };
+    }
 
     if (tools && tools.length > 0) {
       createParams.tools = tools;
@@ -374,6 +394,11 @@ export async function chatMessagesCompletion(
       ...(options.stop ? { stop: options.stop } : {}),
       stream: false,
     };
+
+    if (options.num_ctx) {
+      createParams.num_ctx = options.num_ctx;
+      createParams.extra_body = { options: { num_ctx: options.num_ctx } };
+    }
 
     if (tools && tools.length > 0) {
       createParams.tools = tools;

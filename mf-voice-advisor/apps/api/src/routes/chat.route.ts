@@ -16,6 +16,8 @@ import { startChat, streamChatResponse, getMessages } from '../services/chat.ser
 import { getProfileState } from '../services/profile.service';
 import { ConversationSession } from '../db/models/ConversationSession.model';
 import { requireAuth as authMiddleware, AuthRequest } from '../middleware/auth.middleware';
+import fs from 'fs';
+import path from 'path';
 
 const router = Router();
 
@@ -62,34 +64,33 @@ router.post('/start', authMiddleware, async (req: AuthRequest, res: Response): P
 // ---------------------------------------------------------------------------
 
 router.post('/:sessionId/message', authMiddleware, async (req: AuthRequest, res: Response): Promise<any> => {
-  const { sessionId } = req.params;
-  const { message } = req.body;
-  const userId = req.user?.userId;
-
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  if (!message || typeof message !== 'string') {
-    res.status(400).json({ error: 'message is required and must be a string' });
-    return;
-  }
-
-  // Verify session exists
-  const session = await ConversationSession.findById(sessionId);
-  if (!session) {
-    res.status(404).json({ error: `Session ${sessionId} not found` });
-    return;
-  }
-
-  // Set SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
-
   try {
+    const { sessionId } = req.params;
+    const { message } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!message || typeof message !== 'string') {
+      res.status(400).json({ error: 'message is required and must be a string' });
+      return;
+    }
+
+    // Verify session exists
+    const session = await ConversationSession.findById(sessionId);
+    if (!session) {
+      res.status(404).json({ error: `Session ${sessionId} not found` });
+      return;
+    }
+
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
     // Stream the AI response
     for await (const chunk of streamChatResponse(sessionId as string, message, userId as string)) {
       res.write(`data: ${JSON.stringify(chunk)}\n\n`);
@@ -99,6 +100,9 @@ router.post('/:sessionId/message', authMiddleware, async (req: AuthRequest, res:
     res.end();
   } catch (error: any) {
     console.error(`POST /chat/${sessionId}/message error:`, error);
+    try {
+      fs.appendFileSync(path.join(process.cwd(), 'chat_error.log'), new Date().toISOString() + '\n' + (error.stack || error.message) + '\n\n');
+    } catch(e) {}
     res.write(`data: ${JSON.stringify({ type: 'error', content: error.message })}\n\n`);
     res.write(`data: [DONE]\n\n`);
     res.end();

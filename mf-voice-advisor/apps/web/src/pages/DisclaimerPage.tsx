@@ -13,8 +13,8 @@ export default function DisclaimerPage() {
   const handleStart = async () => {
     setLoading(true)
     try {
-      const sid = await startSession()
-      sessionStorage.setItem('sessionId', sid)
+      const { sessionId } = await startSession()
+      sessionStorage.setItem('sessionId', sessionId)
       navigate('/conversation')
     } catch (err) {
       console.error('Failed to create session', err)
