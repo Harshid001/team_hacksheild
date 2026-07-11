@@ -17,13 +17,6 @@ const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || 'dummy_client_secret';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-const GOOGLE_REDIRECT_URI = `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/auth/google/callback`;
-
-const googleClient = new OAuth2Client(
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI
-);
 
 // Helper to generate access token
 const generateAccessToken = (userId: string) => {
@@ -43,9 +36,21 @@ const cookieOptions = {
   maxAge: REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
 };
 
+// Helper to get dynamic base URLs from the request
+const getUrls = (req: Request) => {
+  const proto = (req.headers['x-forwarded-proto'] as string) || req.protocol;
+  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host;
+  const backendUrl = process.env.BACKEND_URL || `${proto}://${host}`;
+  const frontendUrl = process.env.FRONTEND_URL || backendUrl;
+  const redirectUri = `${backendUrl}/api/auth/google/callback`;
+  return { backendUrl, frontendUrl, redirectUri };
+};
+
 // GET /api/auth/google
 router.get('/google', (req: Request, res: Response) => {
-  const url = googleClient.generateAuthUrl({
+  const { redirectUri } = getUrls(req);
+  const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, redirectUri);
+  const url = client.generateAuthUrl({
     access_type: 'offline',
     scope: ['profile', 'email'],
     prompt: 'consent',
@@ -55,21 +60,23 @@ router.get('/google', (req: Request, res: Response) => {
 
 // GET /api/auth/google/callback
 router.get('/google/callback', async (req: Request, res: Response): Promise<any> => {
+  const { frontendUrl, redirectUri } = getUrls(req);
+  const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, redirectUri);
   try {
     const { code } = req.query;
     if (!code || typeof code !== 'string') {
-      return res.redirect(`${FRONTEND_URL}/signup?error=MissingCode`);
+      return res.redirect(`${frontendUrl}/signup?error=MissingCode`);
     }
 
-    const { tokens } = await googleClient.getToken(code);
-    const ticket = await googleClient.verifyIdToken({
+    const { tokens } = await client.getToken(code);
+    const ticket = await client.verifyIdToken({
       idToken: tokens.id_token!,
       audience: GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
     if (!payload || !payload.email) {
-      return res.redirect(`${FRONTEND_URL}/signup?error=InvalidGoogleToken`);
+      return res.redirect(`${frontendUrl}/signup?error=InvalidGoogleToken`);
     }
 
     const { email, name, sub: googleId } = payload;
@@ -101,10 +108,10 @@ router.get('/google/callback', async (req: Request, res: Response): Promise<any>
     res.cookie('refreshToken', refreshToken, cookieOptions);
     
     // Redirect back to frontend token bridge
-    res.redirect(`${FRONTEND_URL}/oauth-callback?token=${accessToken}`);
+    res.redirect(`${frontendUrl}/oauth-callback?token=${accessToken}`);
   } catch (error: any) {
     console.error('Google Auth error:', error);
-    res.redirect(`${FRONTEND_URL}/signup?error=GoogleAuthFailed`);
+    res.redirect(`${frontendUrl}/signup?error=GoogleAuthFailed`);
   }
 });
 
