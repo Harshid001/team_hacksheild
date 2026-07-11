@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
+import { connectDB } from '../db/connection';
 import { User } from '../db/models/User';
 import { RefreshToken } from '../db/models/RefreshToken';
 import { FinancialProfile } from '../db/models/FinancialProfile';
@@ -63,6 +64,8 @@ router.get('/google/callback', async (req: Request, res: Response): Promise<any>
   const { frontendUrl, redirectUri } = getUrls(req);
   const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, redirectUri);
   try {
+    await connectDB();
+
     const { code } = req.query;
     if (!code || typeof code !== 'string') {
       return res.redirect(`${frontendUrl}/signup?error=MissingCode`);
@@ -111,7 +114,14 @@ router.get('/google/callback', async (req: Request, res: Response): Promise<any>
     res.redirect(`${frontendUrl}/oauth-callback?token=${accessToken}`);
   } catch (error: any) {
     console.error('Google Auth error:', error);
-    res.redirect(`${frontendUrl}/signup?error=GoogleAuthFailed`);
+    const isDbError =
+      error?.name === 'MongooseError' ||
+      error?.message?.includes('MONGODB_URI') ||
+      error?.message?.includes('buffering timed out') ||
+      error?.message?.includes('connection');
+    res.redirect(
+      `${frontendUrl}/signup?error=${isDbError ? 'DatabaseUnavailable' : 'GoogleAuthFailed'}&details=${encodeURIComponent(error?.message || String(error))}`
+    );
   }
 });
 
