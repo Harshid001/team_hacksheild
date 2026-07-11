@@ -148,17 +148,13 @@ export async function updateUserProfile(
   if (data.horizonYears !== undefined && data.horizonYears !== null) updateData.timeHorizon = data.horizonYears.toString();
   if (data.riskReaction !== undefined && data.riskReaction !== null) updateData.riskTolerance = data.riskReaction;
 
-  if (Object.keys(updateData).length > 0) {
-    await FinancialProfile.updateOne(
-      { userId: new mongoose.Types.ObjectId(userId) },
-      { $set: updateData }
-    );
-  }
+  const profile = await FinancialProfile.findOneAndUpdate(
+    { userId: new mongoose.Types.ObjectId(userId) },
+    { $set: updateData },
+    { new: true, upsert: true }
+  );
 
-  const profile = await FinancialProfile.findOne({
-    userId: new mongoose.Types.ObjectId(userId),
-  });
-  if (!profile) throw new Error(`No profile found for user ${userId}`);
+  if (!profile) throw new Error(`Failed to upsert profile for user ${userId}`);
 
   const state = profileToState(profile as any);
   const missing = getMissingFields(state);
@@ -184,10 +180,12 @@ export async function getProfileState(userId: string): Promise<{
   riskCapacity?: string;
   recommendedCategory?: string;
 }> {
-  const profile = await FinancialProfile.findOne({
+  let profile = await FinancialProfile.findOne({
     userId: new mongoose.Types.ObjectId(userId),
   });
-  if (!profile) throw new Error(`No profile found for user ${userId}`);
+  if (!profile) {
+    profile = await FinancialProfile.create({ userId: new mongoose.Types.ObjectId(userId) });
+  }
 
   const state = profileToState(profile as any);
   const missing = getMissingFields(state);

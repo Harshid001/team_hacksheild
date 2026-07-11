@@ -46,7 +46,7 @@ PERSONALITY:
 - Warm, encouraging, and patient
 - You explain complex financial concepts in simple language
 - You use relatable Indian examples (₹ rupees, Indian mutual fund categories, Indian market context)
-- You keep responses concise (2-4 sentences for conversational exchanges)
+- You keep responses concise (1-2 sentences for conversational exchanges)
 - You are a voice conversation assistant, so be natural and conversational
 
 CAPABILITIES:
@@ -57,23 +57,23 @@ CAPABILITIES:
 
 PROFILE COLLECTION:
 - During conversation, naturally gather the user's information when they share it
-- The fields you need are: age, investmentAmount (in ₹), goal (retirement/wedding/house/education/emergency/wealth/other), horizonYears, riskReaction (how they'd react to a 15% drop)
-- Use the updateUserProfile tool when you've extracted information from the user's messages
-- Do NOT ask all questions at once — gather information naturally through conversation
-- Acknowledge what the user says before asking follow-up questions
+- The fields you need are: age, investmentAmount (in ₹), goal, horizonYears, riskReaction
+- Use the updateUserProfile tool immediately when you extract any of these from the user's messages
+- Acknowledge what the user says naturally.
 
 CURRENT USER PROFILE:
 ${profileContext}
 
 RULES:
-1. NEVER say "I'm just an AI" or "I can't give financial advice" — you ARE a financial advisor (educational)
-2. Use "historically" framing when discussing fund performance — never say "you should buy"
-3. Always include the disclaimer that past performance doesn't guarantee future returns when discussing specific funds
-4. Be proactive — if the user seems confused, offer to explain
-5. Keep responses SHORT for voice conversation — no long paragraphs
-6. When all profile fields are gathered, let the user know you can generate their personalized report
-7. Respond in the same language the user uses (English or Hinglish)
-8. Do NOT use markdown formatting — speak naturally as this is a voice/chat conversation`;
+1. NEVER say "I'm just an AI" or "I can't give financial advice" — you ARE a financial advisor (educational).
+2. ALWAYS ask exactly ONE question at a time. Never list multiple questions.
+3. Be conversational and varied. DO NOT repeat the exact same phrasing.
+4. Keep responses SHORT for voice conversation — 1 or 2 sentences maximum.
+5. If the user gives a nonsense answer (like "Hi"), politely steer them back to the topic.
+6. When all profile fields are gathered, let the user know you are ready to generate their personalized report.
+7. Respond in the same language the user uses (English or Hinglish).
+8. Do NOT use markdown formatting — speak naturally as this is a voice/chat conversation.
+9. NEVER guess or hallucinate profile fields. If the user only provides one field (e.g. amount), DO NOT assume their goal or horizon.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,11 +104,11 @@ const TOOLS: ChatCompletionTool[] = [
           },
           horizonYears: {
             type: 'number',
-            description: 'Number of years the user plans to stay invested. "long term" = 10, "short term" = 2, "medium term" = 5',
+            description: 'Number of years the user plans to stay invested',
           },
           riskReaction: {
             type: 'string',
-            description: 'How the user would react if their investment dropped 15% — their emotional response as free text',
+            description: 'How the user would react if their investment dropped by 15% (e.g., "sell", "hold", "buy more")',
           },
         },
         required: [],
@@ -167,33 +167,17 @@ async function buildProfileContext(userId: string): Promise<string> {
     const profile = await FinancialProfile.findOne({
       userId: new mongoose.Types.ObjectId(userId),
     });
+
     if (!profile) return 'No profile data collected yet. Start by getting to know the user.';
 
-    const state = profileToState(profile as any);
-    const missing = getMissingFields(state);
+    let ctx = `Age: ${profile.age || 'Unknown'}\n`;
+    ctx += `Investment Amount: ${profile.investmentAmount ? `₹${profile.investmentAmount}` : 'Unknown'}\n`;
+    ctx += `Goal: ${profile.goal || 'Unknown'}\n`;
+    ctx += `Horizon: ${profile.horizonYears ? `${profile.horizonYears} years` : 'Unknown'}\n`;
+    ctx += `Risk Reaction: ${profile.riskReaction || 'Unknown'}\n`;
 
-    const lines: string[] = [];
-    if (state.age !== null) lines.push(`- Age: ${state.age}`);
-    if (state.investmentAmount !== null) lines.push(`- Investment Amount: ₹${state.investmentAmount.toLocaleString('en-IN')}`);
-    if (state.goal !== null) lines.push(`- Goal: ${state.goal}`);
-    if (state.horizonYears !== null) lines.push(`- Horizon: ${state.horizonYears} years`);
-    if (state.riskReaction !== null) lines.push(`- Risk Reaction: provided`);
-
-    if (lines.length === 0) {
-      return 'No profile data collected yet. Start by getting to know the user.';
-    }
-
-    let ctx = `Collected so far:\n${lines.join('\n')}`;
-    if (missing.length > 0) {
-      ctx += `\n\nStill need: ${missing.join(', ')}`;
-    } else {
-      ctx += '\n\n✅ All fields collected! Profile is complete. Offer to generate their personalized report.';
-      
-      const { riskCapacity, recommendedCategory } = await getProfileState(userId);
-      if (riskCapacity) {
-        ctx += `\nRisk Capacity: ${riskCapacity}`;
-        ctx += `\nRecommended Category: ${recommendedCategory}`;
-      }
+    if (profile.riskCategory) {
+      ctx += `Risk Category: ${profile.riskCategory}\n`;
     }
 
     return ctx;
@@ -288,33 +272,44 @@ export async function startChat(userId: string): Promise<{
   // Create a generator that streams the greeting from Ollama
   async function* greetingStream(): AsyncGenerator<StreamChunk, void, unknown> {
     let fullResponse = '';
+    let insideThink = false;  // Track whether we're inside <think>...</think>
 
     try {
-      for await (const chunk of chatMessagesStream(messages, { temperature: 0.8, num_predict: 1024 })) {
+      for await (const chunk of chatMessagesStream(messages, { temperature: 0.8, num_predict: 1024, num_ctx: 8192 })) {
         if (chunk.type === 'token') {
-          const cleaned = chunk.content?.replace(/<\/?think>/g, '') || '';
-          if (cleaned) {
-            fullResponse += cleaned;
-            yield { type: 'token', content: cleaned };
+          if (chunk.content) {
+            fullResponse += chunk.content;
+            yield { type: 'token', content: chunk.content };
           }
         } else if (chunk.type === 'done') {
+          // Final cleanup — remove any remaining thinking tags that may have been partial
           fullResponse = cleanResponse(fullResponse);
+
           if (!fullResponse) {
-            throw new Error("Model generated empty response");
+            console.warn('[chat.service] Greeting stream produced empty response — using fallback');
+            fullResponse = `Hi ${userName}! I'm your MF Advisor. I'd love to help you with your investment planning. To get started, could you tell me your age?`;
+            yield { type: 'token', content: fullResponse };
           }
+
+          console.log('[chat.service] Greeting generated:', fullResponse.slice(0, 100));
           yield { type: 'done', content: fullResponse, finishReason: chunk.finishReason };
         }
       }
     } catch (err: any) {
+      console.error('[chat.service] Greeting stream error:', err?.message || err);
+      // If we got nothing, provide a fallback so the user isn't stuck
       if (!fullResponse) {
-        throw err;
-      } else {
-        throw err;
+        fullResponse = `Hi ${userName}! Welcome! I'm your MF Advisor. To help you find the right mutual funds, could you start by telling me your age?`;
+        yield { type: 'token', content: fullResponse };
+        yield { type: 'done', content: fullResponse, finishReason: 'error_fallback' };
       }
+      // Don't re-throw if we have a fallback — let the conversation continue
     }
 
     // Save the greeting to history
-    await saveMessage(sessionId, 'assistant', fullResponse);
+    if (fullResponse) {
+      await saveMessage(sessionId, 'assistant', fullResponse);
+    }
   }
 
   return { sessionId, stream: greetingStream() };
@@ -346,10 +341,11 @@ export async function* streamChatResponse(
   const profileCtx = await buildProfileContext(userId);
   const systemPrompt = buildSystemPrompt(profileCtx, userName);
 
-  // 4. Construct messages array
+  // 4. Construct messages array. To prevent context window explosion, keep the last 20 messages.
+  const MAX_HISTORY = 20;
   const messages: ChatCompletionMessageParam[] = [
     { role: 'system', content: systemPrompt },
-    ...history,
+    ...history.slice(-MAX_HISTORY),
   ];
 
   // 5. Stream from LLM with tools
@@ -358,15 +354,16 @@ export async function* streamChatResponse(
   let hasToolCalls = false;
   let pendingToolCalls: Array<{ id: string; name: string; args: string }> = [];
   let isProfileComplete = false;
+  let insideThink = false;  // Track thinking tags
+
+  console.log('[chat.service] Streaming response for session:', sessionId, 'message:', userMessage.slice(0, 50));
 
   // First pass — stream and collect
-  for await (const chunk of chatMessagesStream(messages, { temperature: 0.7, num_predict: 2048 }, TOOLS)) {
+  for await (const chunk of chatMessagesStream(messages, { temperature: 0.7, num_predict: 2048, num_ctx: 8192 }, TOOLS)) {
     if (chunk.type === 'token') {
-      // Clean thinking tags in real-time
-      const cleaned = chunk.content?.replace(/<\/?think>/g, '') || '';
-      if (cleaned) {
-        fullResponse += cleaned;
-        yield { type: 'token', content: cleaned };
+      if (chunk.content) {
+        fullResponse += chunk.content;
+        yield { type: 'token', content: chunk.content };
       }
     } else if (chunk.type === 'tool_call' && chunk.toolCall) {
       hasToolCalls = true;
@@ -414,28 +411,23 @@ export async function* streamChatResponse(
 
     const continuationMessages: ChatCompletionMessageParam[] = [
       { role: 'system', content: updatedSystemPrompt },
-      ...history,
-      // Add tool result context as assistant message
-      {
-        role: 'assistant',
-        content: `[Tool calls executed: ${toolCallsExecuted.map(t =>
-          `${t.name}(${JSON.stringify(t.args)}) → ${JSON.stringify(t.result)}`
-        ).join('; ')}]\n\nNow respond naturally to the user based on the tool results. Do NOT mention tool calls or technical details. Just acknowledge what was saved and continue the conversation.`,
-      },
+      ...history.slice(-MAX_HISTORY).slice(0, -1),
       {
         role: 'user',
-        content: userMessage,
-      },
+        content: `${userMessage}\n\n[SYSTEM NOTIFICATION: Tool calls were just executed successfully based on your input. Results: ${toolCallsExecuted.map(t =>
+          `${t.name}(${JSON.stringify(t.args)}) → ${JSON.stringify(t.result)}`
+        ).join('; ')}]\nNow respond naturally to the user. Do NOT mention tool calls or technical details. Just acknowledge what was saved and continue the conversation.`,
+      }
     ];
 
     // Stream the continuation
     let continuationResponse = '';
-    for await (const chunk of chatMessagesStream(continuationMessages, { temperature: 0.7, num_predict: 1024 })) {
+    let insideThinkCont = false;
+    for await (const chunk of chatMessagesStream(continuationMessages, { temperature: 0.7, num_predict: 1024, num_ctx: 8192 })) {
       if (chunk.type === 'token') {
-        const cleaned = chunk.content?.replace(/<\/?think>/g, '') || '';
-        if (cleaned) {
-          continuationResponse += cleaned;
-          yield { type: 'token', content: cleaned };
+        if (chunk.content) {
+          continuationResponse += chunk.content;
+          yield { type: 'token', content: chunk.content };
         }
       } else if (chunk.type === 'done') {
         continuationResponse = cleanResponse(continuationResponse);

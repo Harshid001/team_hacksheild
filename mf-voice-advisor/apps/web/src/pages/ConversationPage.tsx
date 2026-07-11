@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { startSession, sendAnswer } from '../lib/api'
+import { startSession, sendAnswer, getProfile } from '../lib/api'
 import { createRecognizer, isSTTSupported } from '../lib/speechRecognition'
 import { speak, stopSpeaking } from '../lib/speechSynthesis'
 import { TRANSLATIONS } from '../lib/translations'
@@ -51,35 +51,59 @@ export default function ConversationPage() {
     let mounted = true
     const init = async () => {
       try {
-        let sid = sessionStorage.getItem('sessionId')
-        // Validate cached sessionId — reject fake/fallback IDs
-        if (sid && (sid.startsWith('fallback') || sid.length < 10)) {
-          sessionStorage.removeItem('sessionId')
-          sid = null
+        // Debug: check backend health on mount
+        try {
+          const healthRes = await fetch('/health')
+          const healthData = await healthRes.json()
+          console.log('[ConversationPage] Backend health:', healthData)
+        } catch (e) {
+          console.warn('[ConversationPage] Backend health check failed — is the API server running on port 3000?', e)
         }
-        if (!sid) {
-          sid = await startSession()
-          sessionStorage.setItem('sessionId', sid)
-        }
+
+        // Always start a fresh session when the conversation page is loaded.
+        // This prevents the "stale sessionId" bug where a cached session
+        // from a previous failed attempt causes the page to sit at the
+        // empty state with no greeting.
+        sessionStorage.removeItem('sessionId')
+
+        setIsAiTyping(true) // Show typing indicator while backend generates greeting
+        console.log('[ConversationPage] Starting new session...')
+        const session = await startSession()
+        const sid = session.sessionId
+        const greetingText = session.greeting
+        sessionStorage.setItem('sessionId', sid)
+        console.log('[ConversationPage] Session started:', sid, 'greeting:', greetingText?.slice(0, 80))
+
         if (!mounted) return
         setSessionId(sid)
         setSttSupported(isSTTSupported())
 
-        // Show typing indicator, then first question
-        setIsAiTyping(true)
-        setTimeout(() => {
-          if (!mounted) return
+        if (greetingText) {
+          // Display the LLM's custom greeting with a short animation delay
+          setTimeout(() => {
+            if (!mounted) return
+            setIsAiTyping(false)
+            handleNewQuestion(greetingText)
+          }, 600)
+        } else {
+          // Greeting was empty (model may have returned nothing) — use a fallback
+          console.warn('[ConversationPage] Empty greeting from LLM — using fallback')
           setIsAiTyping(false)
-          const welcomeMsg = t.convWelcome
-          const welcomeHint = t.convWelcomeHint
-          
-          handleNewQuestion(welcomeMsg, welcomeHint)
-        }, 1200)
-      } catch (err) {
-        console.error('Session start failed', err)
+          handleNewQuestion('Hello! I\'m your MF Advisor. I\'d love to help you with your investment planning. To start, could you tell me your age?')
+        }
+      } catch (err: any) {
+        console.error('[ConversationPage] Session start failed:', err?.message || err)
         // Clear stale session and redirect back
         sessionStorage.removeItem('sessionId')
-        if (mounted) navigate('/start')
+        if (mounted) {
+          setIsAiTyping(false)
+          // Show error in chat instead of redirecting — so user sees what went wrong
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            role: 'ai',
+            text: `Sorry, I couldn't connect to the AI service. Error: ${err?.message || 'Unknown error'}. Please make sure Ollama and MongoDB are running, then refresh the page.`
+          }])
+        }
       }
     }
     init()
@@ -116,17 +140,11 @@ export default function ConversationPage() {
     }
   }
 
-  const handleSendAnswer = async (text: string, targetGoal?: string) => {
+  const handleSendAnswer = async (text: string, _targetGoal?: string) => {
     if (!sessionId) return
     stopSpeaking()
     if (stopSttRef.current) { stopSttRef.current(); stopSttRef.current = null }
     setInterimText('')
-
-    // Update Live Profile based on current stage before incrementing
-    if (stageIndex === 1) setLiveProfile(p => ({ ...p, age: text }))
-    if (stageIndex === 2) setLiveProfile(p => ({ ...p, horizon: text }))
-    if (stageIndex === 3) setLiveProfile(p => ({ ...p, amount: text, targetGoal: targetGoal || p.targetGoal }))
-    if (stageIndex === 4) setLiveProfile(p => ({ ...p, risk: text }))
 
     setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', text }])
     setOrbState('thinking')
@@ -134,16 +152,48 @@ export default function ConversationPage() {
 
     try {
       const { nextQuestion, isComplete } = await sendAnswer(sessionId, text)
+      
+      // Sync the real profile state extracted by the AI
+      try {
+        const profileData = await getProfile(sessionId)
+        if (profileData && profileData.state) {
+          setLiveProfile({
+            age: profileData.state.age?.toString(),
+            horizon: profileData.state.horizonYears ? `${profileData.state.horizonYears} years` : undefined,
+            amount: profileData.state.investmentAmount ? `₹${profileData.state.investmentAmount}` : undefined,
+            risk: profileData.state.riskReaction,
+            targetGoal: profileData.state.goal
+          })
+          
+          // Determine stage index dynamically based on missing fields
+          const missing = profileData.missingFields || []
+          if (missing.includes('age')) setStageIndex(1)
+          else if (missing.includes('horizonYears')) setStageIndex(2)
+          else if (missing.includes('investmentAmount')) setStageIndex(3)
+          else if (missing.includes('riskReaction')) setStageIndex(4)
+          else setStageIndex(5)
+        }
+      } catch (err) {
+        console.warn('Failed to sync profile', err)
+      }
+
       if (isComplete) {
         setIsAiTyping(false)
         navigate(`/report/${sessionId}`)
       } else {
-        setStageIndex(p => Math.min(p + 1, 5))
         setIsAiTyping(false)
         handleNewQuestion(nextQuestion)
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
+      
+      // If the backend returned a 404, the session is dead. Clear it and reload.
+      if (err.message?.includes('404') || err.status === 404 || err.response?.status === 404 || err.message?.includes('Failed to send answer')) {
+        sessionStorage.removeItem('sessionId')
+        window.location.reload()
+        return
+      }
+
       setIsAiTyping(false)
       setOrbState('idle')
       setMessages(prev => [...prev, {
@@ -192,7 +242,6 @@ export default function ConversationPage() {
 
       {/* ── Main Chat Area ─────────────────────────────────────── */}
       <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-        {/* ── Top Bar ─────────────────────────────────────────────── */}
         <header className="px-4 py-3 flex items-center justify-between bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex-shrink-0 shadow-sm">
           <div className="flex items-center gap-2">
             {/* Exit Button */}
