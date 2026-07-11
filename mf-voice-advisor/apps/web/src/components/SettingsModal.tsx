@@ -35,22 +35,22 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
         className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[600px] max-h-[90vh]"
       >
         {/* Sidebar */}
-        <div className="w-full md:w-64 bg-slate-50 dark:bg-slate-800 border-r border-gray-100 dark:border-slate-700 flex flex-col">
-          <div className="p-6 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between md:block">
+        <div className="w-full md:w-64 shrink-0 bg-slate-50 dark:bg-slate-800 border-b md:border-b-0 md:border-r border-gray-100 dark:border-slate-700 flex flex-col">
+          <div className="p-4 md:p-6 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between md:block shrink-0">
             <h2 className="text-xl font-display font-bold text-slate-800 dark:text-white">Settings</h2>
             <button
               onClick={onClose}
-              className="md:hidden p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full"
+              className="md:hidden p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full shrink-0"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex flex-row md:flex-col p-4 space-x-2 md:space-x-0 md:space-y-1 overflow-x-auto md:overflow-y-auto scrollbar-hide shrink-0 md:flex-1">
             <button
               onClick={() => setActiveTab('general')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-shrink-0 whitespace-nowrap md:w-full flex items-center gap-3 px-4 py-2.5 md:py-3 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'general' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
@@ -62,7 +62,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
             </button>
             <button
               onClick={() => setActiveTab('notifications')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-shrink-0 whitespace-nowrap md:w-full flex items-center gap-3 px-4 py-2.5 md:py-3 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'notifications' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
@@ -73,7 +73,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
             </button>
             <button
               onClick={() => setActiveTab('ai')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-shrink-0 whitespace-nowrap md:w-full flex items-center gap-3 px-4 py-2.5 md:py-3 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'ai' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >

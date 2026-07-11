@@ -22,7 +22,7 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-md max-h-[100dvh] sm:max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-y-auto"
       >
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-xl font-display font-bold text-slate-800">My Profile</h2>
@@ -49,7 +49,7 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
               <p className="text-xs text-slate-500 mb-1">Risk Profile</p>
               <p className="font-semibold text-slate-800 flex items-center gap-2">

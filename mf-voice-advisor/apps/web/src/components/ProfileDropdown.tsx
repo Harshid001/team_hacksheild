@@ -59,7 +59,7 @@ export default function ProfileDropdown({ onLoginClick }: ProfileDropdownProps) 
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="absolute left-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden"
+              className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden"
             >
               <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{user?.name || 'User'}</p>
