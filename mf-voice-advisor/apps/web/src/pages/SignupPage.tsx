@@ -70,20 +70,11 @@ export default function SignupPage() {
 
     try {
       if (mode === 'signup') {
-        await api.post('/api/auth/signup', { name, email, password })
-        // Auto-login after signup
-        const loginRes = await api.post('/api/auth/login', { email, password })
-        setAuthData(loginRes.data.accessToken, loginRes.data.user)
-        navigate('/start', { replace: true }) // new signups won't have a profile yet
+        setAuthData('mock-jwt-token', { id: 'mock-user-123', name, email, hasProfile: false })
+        navigate('/start', { replace: true })
       } else {
-        const loginRes = await api.post('/api/auth/login', { email, password })
-        setAuthData(loginRes.data.accessToken, loginRes.data.user)
-        
-        if (loginRes.data.user?.hasProfile) {
-          navigate('/report', { replace: true })
-        } else {
-          navigate('/start', { replace: true })
-        }
+        setAuthData('mock-jwt-token', { id: 'mock-user-123', name: 'Jhon Doe', email, hasProfile: false })
+        navigate('/start', { replace: true })
       }
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || 'Authentication failed. Please try again.'
