@@ -188,7 +188,7 @@ export async function chatCompletion(
   const client = getOllamaClient();
 
   try {
-    const response = await client.chat.completions.create({
+    const createParams: any = {
       model,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -199,7 +199,7 @@ export async function chatCompletion(
       max_tokens: options.num_predict ?? 1024,
       ...(options.stop ? { stop: options.stop } : {}),
       stream: false,
-    } as any;
+    };
 
     if (options.num_ctx) {
       createParams.num_ctx = options.num_ctx; // Some Ollama versions support it at root
@@ -235,7 +235,7 @@ export async function* chatCompletionStream(
   const client = getOllamaClient();
 
   try {
-    const stream = await client.chat.completions.create({
+    const createParams: any = {
       model,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -246,7 +246,7 @@ export async function* chatCompletionStream(
       max_tokens: options.num_predict ?? 1024,
       ...(options.stop ? { stop: options.stop } : {}),
       stream: true,
-    } as any;
+    };
 
     if (options.num_ctx) {
       createParams.num_ctx = options.num_ctx;
@@ -255,7 +255,7 @@ export async function* chatCompletionStream(
 
     const stream = await client.chat.completions.create(createParams, {
       timeout: 120_000,
-    });
+    }) as any;
 
     for await (const chunk of stream) {
       const delta = chunk.choices?.[0]?.delta?.content;

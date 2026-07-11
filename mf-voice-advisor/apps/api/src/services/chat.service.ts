@@ -170,15 +170,11 @@ async function buildProfileContext(userId: string): Promise<string> {
 
     if (!profile) return 'No profile data collected yet. Start by getting to know the user.';
 
-    let ctx = `Age: ${profile.age || 'Unknown'}\n`;
-    ctx += `Investment Amount: ${profile.investmentAmount ? `₹${profile.investmentAmount}` : 'Unknown'}\n`;
-    ctx += `Goal: ${profile.goal || 'Unknown'}\n`;
-    ctx += `Horizon: ${profile.horizonYears ? `${profile.horizonYears} years` : 'Unknown'}\n`;
-    ctx += `Risk Reaction: ${profile.riskReaction || 'Unknown'}\n`;
-
-    if (profile.riskCategory) {
-      ctx += `Risk Category: ${profile.riskCategory}\n`;
-    }
+    let ctx = `Age Group: ${profile.ageGroup || 'Unknown'}\n`;
+    ctx += `Monthly Investment: ${profile.monthlyInvestment || 'Unknown'}\n`;
+    ctx += `Target Goal: ${profile.targetGoal || 'Unknown'}\n`;
+    ctx += `Time Horizon: ${profile.timeHorizon || 'Unknown'}\n`;
+    ctx += `Risk Tolerance: ${profile.riskTolerance || 'Unknown'}\n`;
 
     return ctx;
   } catch {

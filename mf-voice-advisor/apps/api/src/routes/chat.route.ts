@@ -64,8 +64,8 @@ router.post('/start', authMiddleware, async (req: AuthRequest, res: Response): P
 // ---------------------------------------------------------------------------
 
 router.post('/:sessionId/message', authMiddleware, async (req: AuthRequest, res: Response): Promise<any> => {
+  const { sessionId } = req.params;
   try {
-    const { sessionId } = req.params;
     const { message } = req.body;
     const userId = req.user?.userId;
 
