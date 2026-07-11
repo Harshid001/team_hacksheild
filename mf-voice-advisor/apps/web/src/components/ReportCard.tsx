@@ -59,7 +59,7 @@ export default function ReportCard({ recommendation }: Props) {
              </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-blue-50/40 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-xl p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 bg-blue-50/40 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-xl p-4">
             <MetricBox label="5Y CAGR" value={`${metrics.cagr5yr}%`} tooltip="Average annual growth rate over the past 5 years. Higher is better." />
             <MetricBox label="Volatility" value={`${metrics.volatilityAnnualized}%`} tooltip="How much the fund's returns bounce up and down. Lower means a smoother ride." />
             <MetricBox label="Sharpe Ratio" value={metrics.sharpeRatio.toString()} tooltip="Return earned per unit of risk. Over 1.0 is generally considered good." />

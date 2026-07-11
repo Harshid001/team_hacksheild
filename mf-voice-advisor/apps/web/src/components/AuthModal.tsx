@@ -98,9 +98,9 @@ export default function AuthModal({ onClose, initialMode = 'login' }: AuthModalP
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-md max-h-[100dvh] sm:max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-y-auto"
       >
-        <div className="flex border-b border-gray-100">
+        <div className="flex border-b border-gray-100 shrink-0">
           <button
             onClick={() => { setMode('login'); setError('') }}
             className={`flex-1 py-4 text-sm font-semibold transition-colors ${

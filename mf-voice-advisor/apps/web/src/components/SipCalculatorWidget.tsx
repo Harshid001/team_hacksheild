@@ -100,14 +100,14 @@ export default function SipCalculatorWidget({ horizonString, onSelectSip, disabl
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center justify-between">
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
               <div>
                 <p className="text-xs text-slate-500 mb-0.5">Required Monthly SIP</p>
                 <p className="text-sm font-medium text-slate-600">
                   For <span className="font-bold text-slate-800">{years} years</span> at 12% est. CAGR
                 </p>
               </div>
-              <p className="text-xl font-bold text-slate-800">{formatCurrency(calculatedSip)}</p>
+              <p className="text-lg sm:text-xl font-bold text-slate-800 break-all">{formatCurrency(calculatedSip)}</p>
             </div>
 
             <button

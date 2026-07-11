@@ -211,17 +211,17 @@ export default function LandingPage() {
   const estimatedReturns = Math.max(0, futureValue - totalInvested)
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-blue-100 dark:selection:bg-blue-900/50">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-blue-100 dark:selection:bg-blue-900/50 overflow-x-hidden w-full">
 
       {/* ════════════════════════════════════════════════════════════
           NAV BAR
       ════════════════════════════════════════════════════════════ */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-6">
           {/* Profile Logo & Wordmark */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <ProfileDropdown onLoginClick={() => navigate('/signup')} />
-            <span className="font-display font-bold text-lg text-slate-800 dark:text-white">MF Advisor</span>
+            <span className="font-display font-bold text-base sm:text-lg text-slate-800 dark:text-white truncate">MF Advisor</span>
           </div>
 
           {/* Nav links */}
@@ -238,7 +238,7 @@ export default function LandingPage() {
           </nav>
 
           {/* Language selector & CTA */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             
             {/* ── Theme Toggle ── */}
             <button
@@ -269,7 +269,8 @@ export default function LandingPage() {
                 <svg className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
-                <span>{currentLang.flag} {currentLang.native}</span>
+                <span className="hidden sm:inline">{currentLang.flag} {currentLang.native}</span>
+                <span className="sm:hidden">{currentLang.flag} {currentLang.code.toUpperCase()}</span>
                 <svg
                   className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`}
                   fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
@@ -317,7 +318,7 @@ export default function LandingPage() {
 
             <Link
               to="/start"
-              className="flex-shrink-0 btn-primary py-2 px-5 text-sm rounded-lg"
+              className="hidden sm:flex flex-shrink-0 btn-primary py-2 px-5 text-sm rounded-lg active:scale-[0.98]"
             >
               {t.navStartButton}
             </Link>
@@ -364,9 +365,9 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-col sm:flex-row justify-center gap-4"
+              className="flex flex-col sm:flex-row justify-center gap-4 w-full px-4"
             >
-              <Link to="/start" className="btn-primary text-base px-7 py-3.5 shadow-xl shadow-blue-900/40">
+              <Link to="/start" className="btn-primary text-base px-7 py-3.5 shadow-xl shadow-blue-900/40 w-full sm:w-auto">
                 {t.heroCtaStart}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -374,7 +375,7 @@ export default function LandingPage() {
               </Link>
               <button
                 onClick={() => scrollTo('how-it-works')}
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-white/20 text-white text-base font-medium hover:bg-white/10 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-white/20 text-white text-base font-medium hover:bg-white/10 transition-colors w-full sm:w-auto active:scale-[0.98]"
               >
                 {t.heroCtaSeeHow}
               </button>

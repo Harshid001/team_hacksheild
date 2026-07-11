@@ -238,7 +238,7 @@ export default function ConversationPage() {
   }
 
   return (
-    <main className="h-screen max-h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-slate-900 overflow-hidden relative">
+    <main className="h-[100dvh] max-h-[100dvh] flex flex-col md:flex-row bg-gray-50 dark:bg-slate-900 overflow-hidden relative">
 
       {/* ── Main Chat Area ─────────────────────────────────────── */}
       <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900">
