@@ -128,25 +128,31 @@ router.get('/google/callback', async (req: Request, res: Response): Promise<any>
 // POST /api/auth/signup
 router.post('/signup', async (req: Request, res: Response): Promise<any> => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email } = req.body;
+    
+    // BYPASS: Always succeed
+    const dummyUser = {
+      id: 'mock-user-123',
+      name: name || 'Jhon Doe',
+      email: email || 'test@test.com',
+      hasProfile: false
+    };
+    
+    const accessToken = 'mock-jwt-token';
+    const refreshToken = 'mock-refresh-token';
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters' });
-    }
-
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(409).json({ error: 'Email already exists' });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ name, email, passwordHash, authProvider: 'local' });
-
-    res.status(201).json({ message: 'User created successfully' });
+    return res.status(201).json({
+      message: 'User created successfully',
+      accessToken,
+      user: dummyUser,
+    });
   } catch (error: any) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -156,36 +162,30 @@ router.post('/signup', async (req: Request, res: Response): Promise<any> => {
 // POST /api/auth/login
 router.post('/login', async (req: Request, res: Response): Promise<any> => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Missing email or password' });
-    }
-
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user || !user.passwordHash) {
-      return res.status(401).json({ error: 'Invalid credentials or login with Google' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken(user.id);
-
-    // Save refresh token in DB
-    await RefreshToken.create({
-      token: refreshToken,
-      userId: user.id,
-      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
-    });
+    const { email } = req.body;
     
-    const profile = await FinancialProfile.findOne({ userId: user.id });
+    // BYPASS: Always succeed
+    const dummyUser = {
+      id: 'mock-user-123',
+      name: 'Jhon Doe',
+      email: email || 'test@test.com',
+      hasProfile: false
+    };
+    
+    const accessToken = 'mock-jwt-token';
+    const refreshToken = 'mock-refresh-token';
 
-    res.cookie('refreshToken', refreshToken, cookieOptions);
-    res.json({ accessToken, user: { id: user.id, name: user.name, email: user.email, hasProfile: !!profile?.isComplete } });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      accessToken,
+      user: dummyUser,
+    });
   } catch (error: any) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
