@@ -35,7 +35,7 @@ const server = http.createServer(app);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || origin.includes('team-hacksheild') || origin.includes('localhost')) {
+    if (!origin || origin.includes('team-hacksheild') || origin.includes('mf-advisor') || origin.includes('localhost')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
