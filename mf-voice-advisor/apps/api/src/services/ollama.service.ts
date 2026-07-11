@@ -79,6 +79,7 @@ export function getOllamaClient(): OpenAI {
     _client = new OpenAI({
       baseURL: getBaseUrl(),
       apiKey: getApiKey(),
+      defaultHeaders: { 'Bypass-Tunnel-Reminder': 'true' },
     });
   }
   return _client;
