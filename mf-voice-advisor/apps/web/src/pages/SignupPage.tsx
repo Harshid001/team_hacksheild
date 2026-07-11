@@ -4,6 +4,20 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../lib/axios'
 
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  GoogleAuthFailed: 'Google sign-in failed. Please try again.',
+  DatabaseUnavailable: 'Database is temporarily unavailable. Please try again shortly.',
+  MissingCode: 'Google sign-in was interrupted. Please try again.',
+  InvalidGoogleToken: 'Google returned an invalid token. Please try again.',
+  SessionInitFailed: 'Could not complete sign-in. Please try again.',
+  NoTokenProvided: 'Sign-in did not return a valid session. Please try again.',
+}
+
+function formatAuthError(code: string | null): string {
+  if (!code) return ''
+  return AUTH_ERROR_MESSAGES[code] ?? code
+}
+
 export default function SignupPage() {
   const { setAuthData, isAuthenticated } = useAuth()
   const navigate = useNavigate()
@@ -13,12 +27,12 @@ export default function SignupPage() {
   
   const [mode, setMode] = useState<'login' | 'signup'>('signup')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(initialError || '')
+  const [error, setError] = useState(formatAuthError(initialError))
 
   // Form State
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [name, setName] = useState('Jane Doe')
+  const [email, setEmail] = useState('test@test.com')
+  const [password, setPassword] = useState('password123')
 
   useEffect(() => {
     if (isAuthenticated) {
