@@ -9,11 +9,11 @@ interface Props {
 export default function ListeningIndicator({ state, onClick, disabled }: Props) {
   const getOrbClass = () => {
     switch (state) {
-      case 'idle':      return 'bg-teal-500 orb-idle'
-      case 'listening': return 'bg-teal-400 orb-listen scale-110'
-      case 'speaking':  return 'bg-navy-500 orb-speak'
-      case 'thinking':  return 'bg-warm-400 opacity-80'
-      default:          return 'bg-teal-500'
+      case 'idle':      return 'bg-blue-500 orb-idle'
+      case 'listening': return 'bg-blue-400 orb-listen scale-110'
+      case 'speaking':  return 'bg-slate-500 orb-speak'
+      case 'thinking':  return 'bg-gray-400 opacity-80'
+      default:          return 'bg-blue-500'
     }
   }
 
@@ -33,7 +33,7 @@ export default function ListeningIndicator({ state, onClick, disabled }: Props) 
         type="button"
         onClick={onClick}
         disabled={disabled || state === 'thinking' || state === 'speaking'}
-        className="relative group focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-200 rounded-full transition-transform"
+        className="relative group focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 rounded-full transition-transform"
         aria-label={getLabel()}
         title={getLabel()}
       >
@@ -76,7 +76,7 @@ export default function ListeningIndicator({ state, onClick, disabled }: Props) 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         key={state}
-        className={`mt-6 text-sm font-medium tracking-wide ${state === 'listening' ? 'text-teal-600' : 'text-warm-500'}`}
+        className={`mt-6 text-sm font-medium tracking-wide ${state === 'listening' ? 'text-blue-600' : 'text-gray-500'}`}
         aria-live="polite"
       >
         {getLabel()}

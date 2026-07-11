@@ -15,8 +15,11 @@ import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import http from 'http';
+import cookieParser from 'cookie-parser';
 
 import { connectDB } from './db/connection';
+import authRoutes from './routes/auth.route';
+import profileRoutes from './routes/profile.route';
 import chatRoutes from './routes/chat.route';
 import reportRoutes from './routes/report.route';
 import analyticsRoutes from './routes/analytics.route';
@@ -30,13 +33,42 @@ const server = http.createServer(app);
 // Middleware
 // ---------------------------------------------------------------------------
 
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || origin.includes('team-hacksheild') || origin.includes('mf-advisor') || origin.includes('localhost')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '10mb' })); // Allow larger payloads for audio blobs
+app.use(cookieParser());
+
+// Ensure MongoDB is connected before any route handler runs (required on Vercel
+// where start() is skipped and each cold start must establish/reuse a connection).
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection middleware error:', error);
+    const requestPath = req.originalUrl || req.path;
+    if (requestPath.includes('/auth/google/callback')) {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      return res.redirect(`${frontendUrl}/signup?error=DatabaseUnavailable`);
+    }
+    res.status(503).json({ error: 'Database connection unavailable' });
+  }
+});
 
 // ---------------------------------------------------------------------------
 // REST Routes
 // ---------------------------------------------------------------------------
 
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/report', reportRoutes);
 app.use('/api/analytics', analyticsRoutes);
@@ -145,4 +177,8 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-start();
+if (process.env.VERCEL !== '1') {
+  start();
+}
+
+export default app;

@@ -1,21 +1,33 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { startSession, sendAnswer } from '../lib/api'
+import { startSession, sendAnswer, getProfile } from '../lib/api'
 import { createRecognizer, isSTTSupported } from '../lib/speechRecognition'
 import { speak, stopSpeaking } from '../lib/speechSynthesis'
 import { TRANSLATIONS } from '../lib/translations'
+import { useTheme } from '../context/ThemeContext'
 
 import ConversationBubble from '../components/ConversationBubble'
 import ListeningIndicator from '../components/ListeningIndicator'
-import MicControls from '../components/MicControls'
 import StageLabel from '../components/StageLabel'
 import TextFallback from '../components/TextFallback'
+import QuickReplies from '../components/QuickReplies'
+import SipCalculatorWidget from '../components/SipCalculatorWidget'
 
 type Message = { id: string; role: 'ai' | 'user' | 'hint'; text: string }
 
+const QUICK_OPTIONS = [
+  [], // 0: intro
+  ['18-25', '26-35', '36-45', '46-55', '56+'], // 1: Age
+  ['< 1 year', '1-3 years', '3-7 years', '7+ years'], // 2: Horizon
+  [], // 3: Amount (Handled by SipCalculatorWidget)
+  ['Conservative', 'Moderate', 'Aggressive'], // 4: Risk
+  [], // 5: Final
+]
+
 export default function ConversationPage() {
   const navigate = useNavigate()
+  const { theme, setTheme } = useTheme()
   const lang = localStorage.getItem('pref-lang') || 'en'
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -27,6 +39,9 @@ export default function ConversationPage() {
   const [isMuted, setIsMuted] = useState(false)
   const [sttSupported, setSttSupported] = useState(true)
   const [isAiTyping, setIsAiTyping] = useState(false)
+  
+  // Live Profile State
+  const [liveProfile, setLiveProfile] = useState<{ age?: string; horizon?: string; amount?: string; risk?: string; targetGoal?: string }>({})
 
   const stopSttRef = useRef<(() => void) | null>(null)
   const transcriptEndRef = useRef<HTMLDivElement>(null)
@@ -36,27 +51,59 @@ export default function ConversationPage() {
     let mounted = true
     const init = async () => {
       try {
-        let sid = sessionStorage.getItem('sessionId')
-        if (!sid) {
-          sid = await startSession()
-          sessionStorage.setItem('sessionId', sid)
+        // Debug: check backend health on mount
+        try {
+          const healthRes = await fetch('/health')
+          const healthData = await healthRes.json()
+          console.log('[ConversationPage] Backend health:', healthData)
+        } catch (e) {
+          console.warn('[ConversationPage] Backend health check failed — is the API server running on port 3000?', e)
         }
+
+        // Always start a fresh session when the conversation page is loaded.
+        // This prevents the "stale sessionId" bug where a cached session
+        // from a previous failed attempt causes the page to sit at the
+        // empty state with no greeting.
+        sessionStorage.removeItem('sessionId')
+
+        setIsAiTyping(true) // Show typing indicator while backend generates greeting
+        console.log('[ConversationPage] Starting new session...')
+        const session = await startSession()
+        const sid = session.sessionId
+        const greetingText = session.greeting
+        sessionStorage.setItem('sessionId', sid)
+        console.log('[ConversationPage] Session started:', sid, 'greeting:', greetingText?.slice(0, 80))
+
         if (!mounted) return
         setSessionId(sid)
         setSttSupported(isSTTSupported())
 
-        // Show typing indicator, then first question
-        setIsAiTyping(true)
-        setTimeout(() => {
-          if (!mounted) return
+        if (greetingText) {
+          // Display the LLM's custom greeting with a short animation delay
+          setTimeout(() => {
+            if (!mounted) return
+            setIsAiTyping(false)
+            handleNewQuestion(greetingText)
+          }, 600)
+        } else {
+          // Greeting was empty (model may have returned nothing) — use a fallback
+          console.warn('[ConversationPage] Empty greeting from LLM — using fallback')
           setIsAiTyping(false)
-          const welcomeMsg = t.convWelcome
-          const welcomeHint = t.convWelcomeHint
-          
-          handleNewQuestion(welcomeMsg, welcomeHint)
-        }, 1200)
-      } catch (err) {
-        console.error('Session start failed', err)
+          handleNewQuestion('Hello! I\'m your MF Advisor. I\'d love to help you with your investment planning. To start, could you tell me your age?')
+        }
+      } catch (err: any) {
+        console.error('[ConversationPage] Session start failed:', err?.message || err)
+        // Clear stale session and redirect back
+        sessionStorage.removeItem('sessionId')
+        if (mounted) {
+          setIsAiTyping(false)
+          // Show error in chat instead of redirecting — so user sees what went wrong
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            role: 'ai',
+            text: `Sorry, I couldn't connect to the AI service. Error: ${err?.message || 'Unknown error'}. Please make sure Ollama and MongoDB are running, then refresh the page.`
+          }])
+        }
       }
     }
     init()
@@ -93,7 +140,7 @@ export default function ConversationPage() {
     }
   }
 
-  const handleSendAnswer = async (text: string) => {
+  const handleSendAnswer = async (text: string, _targetGoal?: string) => {
     if (!sessionId) return
     stopSpeaking()
     if (stopSttRef.current) { stopSttRef.current(); stopSttRef.current = null }
@@ -101,23 +148,59 @@ export default function ConversationPage() {
 
     setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', text }])
     setOrbState('thinking')
+    setIsAiTyping(true)
 
     try {
       const { nextQuestion, isComplete } = await sendAnswer(sessionId, text)
+      
+      // Sync the real profile state extracted by the AI
+      try {
+        const profileData = await getProfile(sessionId)
+        if (profileData && profileData.state) {
+          setLiveProfile({
+            age: profileData.state.age?.toString(),
+            horizon: profileData.state.horizonYears ? `${profileData.state.horizonYears} years` : undefined,
+            amount: profileData.state.investmentAmount ? `₹${profileData.state.investmentAmount}` : undefined,
+            risk: profileData.state.riskReaction,
+            targetGoal: profileData.state.goal
+          })
+          
+          // Determine stage index dynamically based on missing fields
+          const missing = profileData.missingFields || []
+          if (missing.includes('age')) setStageIndex(1)
+          else if (missing.includes('horizonYears')) setStageIndex(2)
+          else if (missing.includes('investmentAmount')) setStageIndex(3)
+          else if (missing.includes('riskReaction')) setStageIndex(4)
+          else setStageIndex(5)
+        }
+      } catch (err) {
+        console.warn('Failed to sync profile', err)
+      }
+
       if (isComplete) {
+        setIsAiTyping(false)
         navigate(`/report/${sessionId}`)
       } else {
-        setStageIndex(p => Math.min(p + 1, 5))
-        // Show typing indicator before AI response
-        setIsAiTyping(true)
-        setTimeout(() => {
-          setIsAiTyping(false)
-          handleNewQuestion(nextQuestion)
-        }, 800)
+        setIsAiTyping(false)
+        handleNewQuestion(nextQuestion)
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
+      
+      // If the backend returned a 404, the session is dead. Clear it and reload.
+      if (err.message?.includes('404') || err.status === 404 || err.response?.status === 404 || err.message?.includes('Failed to send answer')) {
+        sessionStorage.removeItem('sessionId')
+        window.location.reload()
+        return
+      }
+
+      setIsAiTyping(false)
       setOrbState('idle')
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'ai',
+        text: 'Sorry, something went wrong. Please try again or refresh the page.'
+      }])
     }
   }
 
@@ -155,116 +238,193 @@ export default function ConversationPage() {
   }
 
   return (
-    <main className="h-screen max-h-screen flex flex-col bg-warm-50 overflow-hidden relative">
+    <main className="h-screen max-h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-slate-900 overflow-hidden relative">
 
-      {/* ── Top Bar ─────────────────────────────────────────────── */}
-      <header className="px-4 py-3 flex items-center justify-between bg-white border-b border-warm-200 flex-shrink-0 shadow-sm">
-        {/* Exit Button */}
-        <button
-          onClick={() => {
-            stopSpeaking()
-            navigate('/')
-          }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-warm-200 text-xs font-semibold text-warm-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 select-none"
-          aria-label="Exit conversation"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span>{t.convExit}</span>
-        </button>
+      {/* ── Main Chat Area ─────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <header className="px-4 py-3 flex items-center justify-between bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex-shrink-0 shadow-sm">
+          <div className="flex items-center gap-2">
+            {/* Exit Button */}
+          <button
+            onClick={() => {
+              stopSpeaking()
+              navigate('/')
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800/50 hover:bg-red-50/50 dark:hover:bg-red-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 select-none"
+            aria-label="Exit conversation"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>{t.convExit}</span>
+            </button>
 
-        {/* Progress indicator */}
-        <StageLabel stageIndex={stageIndex} />
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+          </div>
 
-        {/* Controls */}
-        <MicControls
-          isMuted={isMuted}
-          onToggleMute={() => {
-            setIsMuted(m => !m)
-            if (orbState === 'speaking') stopSpeaking()
-          }}
-          onReplay={() => {
-            const lastQ = [...messages].reverse().find(m => m.role === 'ai')
-            if (lastQ && !isMuted) {
-              setOrbState('speaking')
-              speak(lastQ.text, { onEnd: () => setOrbState('idle') })
-            }
-          }}
-        />
-      </header>
+          {/* Progress indicator */}
+          <StageLabel stageIndex={stageIndex} />
+        </header>
 
-      {/* ── Chat Transcript ──────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
-
-          {/* Empty state — shown before first message */}
-          <AnimatePresence>
-            {messages.length === 0 && !isAiTyping && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-16 text-center space-y-4"
-              >
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-700 to-teal-600 flex items-center justify-center text-white text-2xl font-bold shadow-card">
-                  F
-                </div>
-                <p className="text-base font-display font-semibold text-navy-700">
-                  {t.convAdvisorReady}
-                </p>
-                <p className="text-sm text-warm-500 max-w-xs">
-                  {t.convAdvisorSub}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Messages */}
-          {messages.map(m => (
-            <ConversationBubble key={m.id} role={m.role} text={m.text} />
-          ))}
-
-          {/* AI typing indicator */}
-          <AnimatePresence>
-            {isAiTyping && (
-              <motion.div
-                key="typing-indicator"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                className="flex items-end gap-2.5"
-              >
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-navy-700 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-md">
-                  F
-                </div>
-                <div className="bg-white border border-warm-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce [animation-delay:300ms]" />
+        {/* ── Chat Transcript ──────────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto scrollbar-thin">
+          <div className="px-4 sm:px-6 py-6 space-y-5">
+            {/* Empty state — shown before first message */}
+            <AnimatePresence>
+              {messages.length === 0 && !isAiTyping && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center py-16 text-center space-y-4"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-card">
+                    M
                   </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <p className="text-base font-display font-semibold text-slate-700 dark:text-white">
+                    {t.convAdvisorReady}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
+                    {t.convAdvisorSub}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <div ref={transcriptEndRef} className="h-1" />
+            {/* Messages */}
+            {messages.map(m => (
+              <ConversationBubble key={m.id} role={m.role} text={m.text} />
+            ))}
+
+            {/* AI typing indicator */}
+            <AnimatePresence>
+              {isAiTyping && (
+                <motion.div
+                  key="typing-indicator"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="flex items-end gap-2.5"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-md">
+                    M
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div ref={transcriptEndRef} className="h-1" />
+          </div>
+        </div>
+
+        {/* ── Bottom Input Area ────────────────────────────────────── */}
+        <div className="bg-white border-t border-gray-200 pt-3 pb-4 px-4 flex-shrink-0">
+          <div className="max-w-2xl mx-auto space-y-3">
+            {/* Reverse SIP Calculator Widget */}
+            <AnimatePresence>
+              {!isAiTyping && orbState !== 'thinking' && stageIndex === 3 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                >
+                  <SipCalculatorWidget
+                    horizonString={liveProfile.horizon}
+                    onSelectSip={handleSendAnswer}
+                    disabled={orbState === 'listening'}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Quick Replies row */}
+            <AnimatePresence>
+              {!isAiTyping && orbState !== 'thinking' && QUICK_OPTIONS[stageIndex] && QUICK_OPTIONS[stageIndex].length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                >
+                  <QuickReplies
+                    options={QUICK_OPTIONS[stageIndex]}
+                    onSelect={(val) => handleSendAnswer(val)}
+                    disabled={orbState === 'listening'}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <TextFallback
+              onSend={(val) => handleSendAnswer(val)}
+              disabled={orbState === 'thinking' || !sessionId}
+              orbState={orbState}
+            />
+            <p className="text-[10px] text-center text-gray-300 select-none">
+              {t.convInputHint}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* ── Bottom Input Area ────────────────────────────────────── */}
-      <div className="bg-white border-t border-warm-200 pt-3 pb-4 px-4 flex-shrink-0">
-        <div className="max-w-2xl mx-auto space-y-2">
-          <TextFallback
-            onSend={handleSendAnswer}
-            onMicClick={handleOrbClick}
-            disabled={orbState === 'thinking' || !sessionId}
-            orbState={orbState}
-          />
-          <p className="text-[10px] text-center text-warm-300 select-none">
-            {t.convInputHint}
-          </p>
+      {/* ── Live Profile Sidebar ─────────────────────────────────── */}
+      <div className="hidden md:flex w-80 bg-slate-50 flex-col border-l border-gray-200 relative">
+        <div className="p-6">
+          <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-6">Live Profile</h3>
+          
+          <div className="space-y-4">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <p className="text-xs text-slate-500 mb-1">Age Group</p>
+              <p className="font-semibold text-slate-800">{liveProfile.age || '—'}</p>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <p className="text-xs text-slate-500 mb-1">Time Horizon</p>
+              <p className="font-semibold text-slate-800">{liveProfile.horizon || '—'}</p>
+            </div>
+
+            {liveProfile.targetGoal && (
+              <div className="bg-white border border-blue-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+                <p className="text-xs text-blue-600 font-semibold mb-1 relative z-10">Target Goal</p>
+                <p className="font-bold text-slate-800 text-lg relative z-10">{liveProfile.targetGoal}</p>
+              </div>
+            )}
+            
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <p className="text-xs text-slate-500 mb-1">Monthly Investment</p>
+              <p className="font-semibold text-slate-800">{liveProfile.amount || '—'}</p>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <p className="text-xs text-slate-500 mb-1">Risk Comfort</p>
+              <p className="font-semibold text-slate-800 flex items-center gap-2">
+                {liveProfile.risk && <span className="w-2 h-2 rounded-full bg-amber-500"></span>}
+                {liveProfile.risk || '—'}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -277,14 +437,14 @@ export default function ConversationPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="absolute inset-0 z-50 bg-navy-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white"
+            className="absolute inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white"
           >
             <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center">
               <div>
-                <h2 className="text-xl font-display font-semibold text-teal-300 mb-1">
+                <h2 className="text-xl font-display font-semibold text-blue-300 mb-1">
                   {t.convListeningTitle}
                 </h2>
-                <p className="text-sm text-navy-300">
+                <p className="text-sm text-slate-300">
                   {t.convListeningSub}
                 </p>
               </div>

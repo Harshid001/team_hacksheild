@@ -7,9 +7,37 @@
  */
 
 import type { Report } from '../../../../packages/shared/src/types'
+import { getGlobalAccessToken } from './axios'
 
 const BASE = '/api'
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
+
+/** Build headers with auth token for raw fetch() calls (SSE streaming) */
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...extra }
+  const token = getGlobalAccessToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  return headers
+}
+
+/**
+ * Wait for the auth token to become available (set by AuthContext after refresh).
+ * Returns the token or throws after timeout.
+ */
+async function waitForAuthToken(timeoutMs = 8000): Promise<string> {
+  const start = Date.now()
+  while (Date.now() - start < timeoutMs) {
+    const token = getGlobalAccessToken()
+    if (token) return token
+    await new Promise(r => setTimeout(r, 200))
+  }
+  throw new Error('Auth token not available — are you logged in?')
+}
+
+/** Strip qwen3 thinking tags from streamed text */
+function cleanThinkingTags(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<\/?think>/g, '').trim()
+}
 
 // ── Session ──────────────────────────────────────────────────────────────────
 
@@ -17,72 +45,27 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
  * POST /api/chat/start
  * Creates a new conversation session via SSE. Returns sessionId.
  */
-export async function startSession(): Promise<string> {
+export async function startSession(): Promise<{ sessionId: string; greeting: string }> {
 
-  const res = await fetch(`${BASE}/chat/start`, { method: 'POST' })
-  if (!res.ok) throw new Error('Failed to start session')
+  // Wait for auth token to be available (AuthContext may still be refreshing)
+  await waitForAuthToken()
+
+  const res = await fetch(`${BASE}/chat/start`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '')
+    console.error(`[startSession] HTTP ${res.status}: ${errText}`)
+    throw new Error(`Failed to start session (HTTP ${res.status}): ${errText}`)
+  }
 
   // The backend streams SSE — read until we get the session event
   const reader = res.body!.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
   let sessionId = ''
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
-
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const payload = line.slice(6).trim()
-      if (payload === '[DONE]') break
-      try {
-        const parsed = JSON.parse(payload)
-        if (parsed.type === 'session' && parsed.sessionId) {
-          sessionId = parsed.sessionId
-        }
-      } catch { /* skip non-JSON lines */ }
-    }
-    if (sessionId) break
-  }
-
-  // Cancel the remaining stream — we only needed the sessionId
-  reader.cancel()
-  if (!sessionId) throw new Error('No sessionId received from SSE stream')
-  return sessionId
-}
-
-// ── Conversation ─────────────────────────────────────────────────────────────
-
-/**
- * POST /api/chat/:sessionId/message
- * Send a user message. Reads the SSE stream and returns the full AI response
- * along with any completion/profile-complete flag.
- */
-export async function sendAnswer(
-  sessionId: string,
-  answerText: string,
-  _audioBlob?: Blob
-): Promise<{ nextQuestion: string; isComplete: boolean }> {
-
-
-  const res = await fetch(`${BASE}/chat/${sessionId}/message`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: answerText }),
-  })
-  if (!res.ok) throw new Error('Failed to send answer')
-
-  // The backend streams SSE chunks — collect the full text response
-  const reader = res.body!.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
   let fullText = ''
-  let isComplete = false
 
   while (true) {
     const { done, value } = await reader.read()
@@ -98,45 +81,157 @@ export async function sendAnswer(
       if (payload === '[DONE]') continue
       try {
         const parsed = JSON.parse(payload)
+        if (parsed.type === 'error') {
+          console.error('[startSession] SSE error:', parsed.content)
+          throw new Error(parsed.content || 'Backend stream error during session start')
+        }
+        if (parsed.type === 'session' && parsed.sessionId) {
+          sessionId = parsed.sessionId
+          console.log('[startSession] Got sessionId:', sessionId)
+        }
         if (parsed.type === 'token' && parsed.content) {
           fullText += parsed.content
         }
-        if (parsed.type === 'done') {
-          // The backend may signal completion via a 'done' event
-          if (parsed.profileComplete) isComplete = true
-        }
-        if (parsed.type === 'profile_complete' || parsed.profileComplete) {
-          isComplete = true
-        }
-      } catch { /* skip non-JSON lines */ }
+      } catch (e: any) {
+        if (e.message?.includes('Backend stream error')) throw e
+        /* skip non-JSON lines */
+      }
     }
   }
 
-  return { nextQuestion: fullText || 'I didn\'t catch that. Could you try again?', isComplete }
+  // Clean thinking tags from the greeting
+  fullText = cleanThinkingTags(fullText)
+
+  if (!sessionId) {
+    throw new Error('Session start completed but no sessionId was received')
+  }
+
+  console.log('[startSession] Session started:', sessionId, 'greeting length:', fullText.length)
+  return { sessionId, greeting: fullText }
+}
+
+// ── Conversation ─────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/chat/:sessionId/message
+ * Send a user message. Reads the SSE stream and returns the full AI response
+ * along with any completion/profile-complete flag.
+ */
+export async function sendAnswer(
+  sessionId: string,
+  answerText: string,
+  _audioBlob?: Blob
+): Promise<{ nextQuestion: string; isComplete: boolean }> {
+
+  // Ensure auth token is available
+  await waitForAuthToken()
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 180_000) // 3 min timeout
+
+  try {
+    const res = await fetch(`${BASE}/chat/${sessionId}/message`, {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ message: answerText }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      console.error(`[sendAnswer] HTTP ${res.status}: ${errText}`)
+      throw new Error(`Failed to send answer (HTTP ${res.status})`)
+    }
+
+    // The backend streams SSE chunks — collect the full text response
+    const reader = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let fullText = ''
+    let isComplete = false
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const payload = line.slice(6).trim()
+        if (payload === '[DONE]') continue
+        try {
+          const parsed = JSON.parse(payload)
+          if (parsed.type === 'error') {
+            console.error('[sendAnswer] SSE error:', parsed.content)
+            throw new Error(parsed.content || 'Stream error from backend')
+          }
+          if (parsed.type === 'token' && parsed.content) {
+            fullText += parsed.content
+          }
+          if (parsed.type === 'done') {
+            // The backend may signal completion via a 'done' event
+            if (parsed.profileComplete) isComplete = true
+          }
+          if (parsed.type === 'profile_complete' || parsed.profileComplete) {
+            isComplete = true
+          }
+        } catch (e: any) {
+          if (e.message?.includes('Stream error')) throw e
+          /* skip non-JSON lines */
+        }
+      }
+    }
+
+    // Clean thinking tags from the response
+    fullText = cleanThinkingTags(fullText)
+
+    return { nextQuestion: fullText || 'I didn\'t catch that. Could you try again?', isComplete }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export async function getProfile(sessionId: string): Promise<any> {
+  await waitForAuthToken()
+  const res = await fetch(`${BASE}/chat/${sessionId}/profile`, {
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error('Failed to fetch profile')
+  return res.json()
 }
 
 // ── Report ────────────────────────────────────────────────────────────────────
 
 /**
- * POST /api/report/:sessionId/generate
+ * POST /api/report/generate
  * Triggers analytics computation + Ollama report composition.
  * Long-running (10-30 s). ProcessingPage polls this.
  */
-export async function generateReport(sessionId: string): Promise<Report> {
+export async function generateReport(sessionId?: string): Promise<Report> {
+  if (USE_MOCK) {
+    await delay(2000)
+    return getMockReport(sessionId || 'mock-session')
+  }
 
-  const res = await fetch(`${BASE}/report/${sessionId}/generate`, { method: 'POST' })
+  const res = await fetch(`${BASE}/report/generate`, { method: 'POST' })
   if (!res.ok) throw new Error('Failed to generate report')
   const { report } = await res.json()
   return report
 }
 
 /**
- * GET /api/report/:sessionId
+ * GET /api/report
  * Fetch an already-generated report.
  */
-export async function fetchReport(sessionId: string): Promise<Report> {
+export async function fetchReport(sessionId?: string): Promise<Report> {
+  if (USE_MOCK) {
+    await delay(500)
+    return getMockReport(sessionId || 'mock-session')
+  }
 
-  const res = await fetch(`${BASE}/report/${sessionId}`)
+  const res = await fetch(`${BASE}/report`)
   if (!res.ok) throw new Error('Failed to fetch report')
   const { report } = await res.json()
   return report
