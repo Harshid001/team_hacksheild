@@ -7,9 +7,18 @@
  */
 
 import type { Report } from '../../../../packages/shared/src/types'
+import { getGlobalAccessToken } from './axios'
 
 const BASE = '/api'
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
+
+/** Build headers with auth token for raw fetch() calls (SSE streaming) */
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...extra }
+  const token = getGlobalAccessToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  return headers
+}
 
 // ── Session ──────────────────────────────────────────────────────────────────
 
@@ -19,7 +28,10 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
  */
 export async function startSession(): Promise<string> {
 
-  const res = await fetch(`${BASE}/chat/start`, { method: 'POST' })
+  const res = await fetch(`${BASE}/chat/start`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error('Failed to start session')
 
   // The backend streams SSE — read until we get the session event
@@ -72,7 +84,7 @@ export async function sendAnswer(
 
   const res = await fetch(`${BASE}/chat/${sessionId}/message`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ message: answerText }),
   })
   if (!res.ok) throw new Error('Failed to send answer')

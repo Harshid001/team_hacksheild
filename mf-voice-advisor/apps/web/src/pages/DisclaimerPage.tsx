@@ -18,9 +18,7 @@ export default function DisclaimerPage() {
       navigate('/conversation')
     } catch (err) {
       console.error('Failed to create session', err)
-      // fallback navigate in case of API failure
-      sessionStorage.setItem('sessionId', `fallback-${Date.now()}`)
-      navigate('/conversation')
+      alert('Failed to start session. Please log out and log back in.')
     } finally {
       setLoading(false)
     }

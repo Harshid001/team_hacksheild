@@ -58,6 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAccessToken(null);
       setGlobalAccessToken(null);
       setUser(null);
+      // Clear stale chat session when auth is lost
+      sessionStorage.removeItem('sessionId');
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);

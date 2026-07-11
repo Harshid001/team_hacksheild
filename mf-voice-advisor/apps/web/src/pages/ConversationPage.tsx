@@ -52,6 +52,11 @@ export default function ConversationPage() {
     const init = async () => {
       try {
         let sid = sessionStorage.getItem('sessionId')
+        // Validate cached sessionId — reject fake/fallback IDs
+        if (sid && (sid.startsWith('fallback') || sid.length < 10)) {
+          sessionStorage.removeItem('sessionId')
+          sid = null
+        }
         if (!sid) {
           sid = await startSession()
           sessionStorage.setItem('sessionId', sid)
@@ -72,6 +77,9 @@ export default function ConversationPage() {
         }, 1200)
       } catch (err) {
         console.error('Session start failed', err)
+        // Clear stale session and redirect back
+        sessionStorage.removeItem('sessionId')
+        if (mounted) navigate('/start')
       }
     }
     init()
@@ -122,23 +130,27 @@ export default function ConversationPage() {
 
     setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', text }])
     setOrbState('thinking')
+    setIsAiTyping(true)
 
     try {
       const { nextQuestion, isComplete } = await sendAnswer(sessionId, text)
       if (isComplete) {
+        setIsAiTyping(false)
         navigate(`/report/${sessionId}`)
       } else {
         setStageIndex(p => Math.min(p + 1, 5))
-        // Show typing indicator before AI response
-        setIsAiTyping(true)
-        setTimeout(() => {
-          setIsAiTyping(false)
-          handleNewQuestion(nextQuestion)
-        }, 800)
+        setIsAiTyping(false)
+        handleNewQuestion(nextQuestion)
       }
     } catch (err) {
       console.error(err)
+      setIsAiTyping(false)
       setOrbState('idle')
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'ai',
+        text: 'Sorry, something went wrong. Please try again or refresh the page.'
+      }])
     }
   }
 

@@ -70,10 +70,12 @@ export default function SignupPage() {
 
     try {
       if (mode === 'signup') {
-        setAuthData('mock-jwt-token', { id: 'mock-user-123', name, email, hasProfile: false })
+        const res = await api.post('/api/auth/signup', { name, email });
+        setAuthData(res.data.accessToken, res.data.user)
         navigate('/start', { replace: true })
       } else {
-        setAuthData('mock-jwt-token', { id: 'mock-user-123', name: 'Jhon Doe', email, hasProfile: false })
+        const res = await api.post('/api/auth/login', { email });
+        setAuthData(res.data.accessToken, res.data.user)
         navigate('/start', { replace: true })
       }
     } catch (err: any) {

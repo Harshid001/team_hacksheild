@@ -129,29 +129,68 @@ router.get('/google/callback', async (req: Request, res: Response): Promise<any>
 router.post('/signup', async (req: Request, res: Response): Promise<any> => {
   try {
     const { name, email } = req.body;
-    
-    // BYPASS: Always succeed
-    const dummyUser = {
-      id: 'mock-user-123',
-      name: name || 'Jhon Doe',
-      email: email || 'test@test.com',
-      hasProfile: false
-    };
-    
-    const accessToken = 'mock-jwt-token';
-    const refreshToken = 'mock-refresh-token';
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ email: email.toLowerCase() });
+    
+    if (user) {
+      // User exists — just log them in
+      const accessToken = generateAccessToken(user.id);
+      const refreshToken = generateRefreshToken(user.id);
+
+      await RefreshToken.create({
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
+      });
+
+      res.cookie('refreshToken', refreshToken, cookieOptions);
+
+      const profile = await FinancialProfile.findOne({ userId: user.id });
+
+      return res.status(200).json({
+        message: 'User logged in successfully',
+        accessToken,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          hasProfile: !!profile?.isComplete,
+        },
+      });
+    }
+
+    // Create new user
+    user = await User.create({
+      name: name || 'User',
+      email: email.toLowerCase(),
+      authProvider: 'local',
     });
+
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+
+    await RefreshToken.create({
+      token: refreshToken,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
+    });
+
+    res.cookie('refreshToken', refreshToken, cookieOptions);
 
     return res.status(201).json({
       message: 'User created successfully',
       accessToken,
-      user: dummyUser,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        hasProfile: false,
+      },
     });
   } catch (error: any) {
     console.error('Signup error:', error);
@@ -163,28 +202,37 @@ router.post('/signup', async (req: Request, res: Response): Promise<any> => {
 router.post('/login', async (req: Request, res: Response): Promise<any> => {
   try {
     const { email } = req.body;
-    
-    // BYPASS: Always succeed
-    const dummyUser = {
-      id: 'mock-user-123',
-      name: 'Jhon Doe',
-      email: email || 'test@test.com',
-      hasProfile: false
-    };
-    
-    const accessToken = 'mock-jwt-token';
-    const refreshToken = 'mock-refresh-token';
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found. Please sign up first.' });
+    }
+
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+
+    await RefreshToken.create({
+      token: refreshToken,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
     });
+
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+
+    const profile = await FinancialProfile.findOne({ userId: user.id });
 
     return res.status(200).json({
       accessToken,
-      user: dummyUser,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        hasProfile: !!profile?.isComplete,
+      },
     });
   } catch (error: any) {
     console.error('Login error:', error);
@@ -204,11 +252,13 @@ router.post('/refresh', async (req: Request, res: Response): Promise<any> => {
     // Verify token exists in DB (not revoked)
     const tokenRecord = await RefreshToken.findOne({ token: refreshToken });
     if (!tokenRecord) {
+      res.clearCookie('refreshToken', { ...cookieOptions, maxAge: 0 });
       return res.status(401).json({ error: 'Invalid or revoked refresh token' });
     }
 
     if (tokenRecord.expiresAt < new Date()) {
       await RefreshToken.deleteOne({ _id: tokenRecord._id });
+      res.clearCookie('refreshToken', { ...cookieOptions, maxAge: 0 });
       return res.status(401).json({ error: 'Refresh token expired' });
     }
 
@@ -217,6 +267,7 @@ router.post('/refresh', async (req: Request, res: Response): Promise<any> => {
       jwt.verify(refreshToken, JWT_REFRESH_SECRET);
     } catch (err) {
       await RefreshToken.deleteOne({ _id: tokenRecord._id });
+      res.clearCookie('refreshToken', { ...cookieOptions, maxAge: 0 });
       return res.status(401).json({ error: 'Invalid refresh token signature' });
     }
 

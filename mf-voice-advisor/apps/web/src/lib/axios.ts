@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:3000' : '';
+const API_BASE = '';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -13,6 +13,10 @@ let currentAccessToken: string | null = null;
 
 export const setGlobalAccessToken = (token: string | null) => {
   currentAccessToken = token;
+};
+
+export const getGlobalAccessToken = (): string | null => {
+  return currentAccessToken;
 };
 
 // Request interceptor to attach access token
