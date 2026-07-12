@@ -86,11 +86,11 @@ src/
 └── main.tsx
 ```
 **Key Features:**
-- 🎙️ Voice-first conversation UI with real-time streaming
-- 🔐 Google OAuth + JWT auth flow
-- 📊 SIP Calculator widget & Investment report generation (PDF export)
-- 🌓 Dark/Light theme with persistence
-- 💅 Responsive Tailwind UI with Framer Motion animations
+-  Voice-first conversation UI with real-time streaming
+-  Google OAuth + JWT auth flow
+-  SIP Calculator widget & Investment report generation (PDF export)
+-  Dark/Light theme with persistence
+-  Responsive Tailwind UI with Framer Motion animations
 
 ### `apps/api` — Backend
 ```text
