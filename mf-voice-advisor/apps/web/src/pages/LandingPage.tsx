@@ -318,7 +318,7 @@ export default function LandingPage() {
 
             <Link
               to="/start"
-              className="hidden sm:flex flex-shrink-0 btn-primary py-2 px-5 text-sm rounded-lg active:scale-[0.98]"
+              className="hidden sm:flex flex-shrink-0 items-center justify-center py-2 px-4 text-sm font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors active:scale-[0.98]"
             >
               {t.navStartButton}
             </Link>
@@ -329,34 +329,25 @@ export default function LandingPage() {
       {/* ════════════════════════════════════════════════════════════
           HERO
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-white pt-16 pb-20 sm:pt-24 sm:pb-28">
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)',
-          backgroundSize: '40px 40px'
-        }} />
-
+      <section className="relative overflow-hidden bg-slate-900 text-white pt-16 pb-32 sm:pt-24 sm:pb-40">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
-          {/* Main content */}
-          <div className="max-w-3xl mx-auto space-y-7 flex flex-col items-center">
+          <div className="max-w-4xl mx-auto space-y-8 flex flex-col items-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
+              className="flex flex-col items-center"
             >
-              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-400/10 border border-blue-400/30 text-blue-300 text-xs font-semibold tracking-wide mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold tracking-wide mb-8">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                 {t.heroBadge}
               </span>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-display font-bold leading-[1.12] tracking-tight text-white">
-                {t.heroTitlePart1}<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-400">
-                  {t.heroTitlePart2}
-                </span>
+              <h1 className="text-4xl sm:text-5xl lg:text-[4rem] font-display font-bold leading-[1.1] tracking-tight text-white mb-6">
+                {t.heroTitlePart1} <span className="text-blue-400">{t.heroTitlePart2}</span>
               </h1>
 
-              <p className="mt-5 text-base sm:text-lg text-slate-200 leading-relaxed max-w-xl">
+              <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-2xl">
                 {t.heroSub}
               </p>
             </motion.div>
@@ -365,9 +356,9 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-col sm:flex-row justify-center gap-4 w-full px-4"
+              className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full px-4"
             >
-              <Link to="/start" className="btn-primary text-base px-7 py-3.5 shadow-xl shadow-blue-900/40 w-full sm:w-auto">
+              <Link to="/start" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-base font-semibold rounded-xl shadow-lg hover:shadow-blue-900/50 transition-all active:scale-[0.98] w-full sm:w-auto">
                 {t.heroCtaStart}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -375,50 +366,53 @@ export default function LandingPage() {
               </Link>
               <button
                 onClick={() => scrollTo('how-it-works')}
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-white/20 text-white text-base font-medium hover:bg-white/10 transition-colors w-full sm:w-auto active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-base font-medium transition-colors w-full sm:w-auto active:scale-[0.98]"
               >
                 {t.heroCtaSeeHow}
               </button>
             </motion.div>
 
-            {/* Trust strip */}
+            {/* Trust strip - Upgraded to glass cards */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-wrap justify-center items-center gap-6 pt-2"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl pt-8"
             >
-              <div className="flex items-center gap-2 text-slate-300 text-xs">
-                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                {t.heroTrustEducational}
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 flex items-center justify-center sm:justify-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-slate-200">{t.heroTrustEducational}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-300 text-xs">
-                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                {t.heroTrustMetrics}
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 flex items-center justify-center sm:justify-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-slate-200">{t.heroTrustMetrics}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-300 text-xs">
-                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                {t.heroTrustNoTx}
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 flex items-center justify-center sm:justify-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-slate-200">{t.heroTrustNoTx}</span>
               </div>
             </motion.div>
           </div>
-
-
         </div>
       </section>
 
-
       {/* ════════════════════════════════════════════════════════════
-          STAT STRIP
+          STAT STRIP (Overlapping)
       ════════════════════════════════════════════════════════════ */}
-      <section className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-200">
+      <section className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto -mt-16 sm:-mt-20 mb-16">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-800 py-8 px-6 sm:p-10 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-200 dark:divide-slate-800">
           <Stat label={t.statCategories} value="6+" />
           <Stat label={t.statPoints} value="10Y+" />
           <Stat label={t.statMetrics} value="5" sub="CAGR • Vol • Sharpe • MaxDD • Exp.R" />
@@ -427,9 +421,121 @@ export default function LandingPage() {
       </section>
 
       {/* ════════════════════════════════════════════════════════════
+          DATA INTEGRITY
+      ════════════════════════════════════════════════════════════ */}
+      <section id="integrity" className="py-20 bg-slate-50 border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeUp className="text-center mb-16">
+            <SectionLabel>{t.integritySectionLabel}</SectionLabel>
+            <h2 className="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
+              {t.integrityTitle}
+            </h2>
+            <p className="text-base text-gray-600 max-w-2xl mx-auto">
+              {t.integritySub}
+            </p>
+          </FadeUp>
+
+          <FadeUp delay={0.1}>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 lg:gap-8 max-w-5xl mx-auto relative">
+              
+              {/* Computed Data card */}
+              <div className="flex-1 bg-white border border-gray-200 shadow-xl shadow-blue-900/5 rounded-2xl p-6 lg:p-8 relative w-full z-10">
+                <div className="absolute -top-3 -right-3 rotate-3 bg-slate-900 text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-lg shadow-md border border-slate-700">
+                  {t.integritySource}
+                </div>
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="bg-blue-100 text-blue-700 p-2.5 rounded-xl">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" />
+                    </svg>
+                  </span>
+                  <h3 className="text-lg font-bold text-slate-900">{t.integrityBadgeComputed}</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3 lg:gap-4">
+                  {[
+                    { l: t.integrityLabelCagr, v: '14.2%' },
+                    { l: t.integrityLabelVol, v: t.integrityVolVal },
+                    { l: t.integrityLabelSharpe, v: '0.87' },
+                    { l: t.integrityLabelMaxdd, v: '-28.3%' },
+                    { l: t.integrityLabelExpr, v: '1.1%' },
+                    { l: t.integrityLabelAum, v: t.integrityLabelAumVal },
+                  ].map(m => (
+                    <div key={m.l} className="bg-slate-50/80 rounded-xl px-4 py-3 border border-slate-200/60">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{m.l}</p>
+                      <p className="font-display font-extrabold text-xl text-slate-900 tabular-nums mt-1">{m.v}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Connector */}
+              <div className="flex flex-col items-center justify-center shrink-0 z-0">
+                <div className="hidden md:flex items-center relative w-12 lg:w-16">
+                  <div className="w-full h-0 border-t-2 border-dashed border-gray-300"></div>
+                  <div className="absolute left-1/2 -translate-x-1/2 bg-white border border-gray-200 text-gray-500 text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap">
+                    Interpreted By AI
+                  </div>
+                </div>
+                <div className="md:hidden flex flex-col items-center justify-center my-4">
+                  <div className="bg-white border border-gray-200 text-gray-500 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm mb-2">
+                    Interpreted By AI
+                  </div>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* AI Explanation card */}
+              <div className="flex-1 bg-violet-50/50 border border-violet-200 shadow-xl shadow-violet-900/5 rounded-2xl p-6 lg:p-8 relative w-full z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="bg-violet-100 text-violet-700 p-2.5 rounded-xl">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                  </span>
+                  <h3 className="text-lg font-bold text-slate-900">{t.integrityBadgeAi}</h3>
+                </div>
+                <div className="bg-white border border-violet-100 rounded-xl p-5 shadow-sm h-full">
+                  <p className="text-sm md:text-base text-slate-700 leading-relaxed italic">
+                    {t.integrityAiQuote}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </FadeUp>
+
+          {/* Tier 2: The Fine Print / Disclaimer */}
+          <FadeUp delay={0.2} className="mt-12 max-w-4xl mx-auto">
+            <div className="bg-gray-100/60 border border-gray-200 rounded-2xl p-5 sm:p-6 space-y-4">
+              <div className="flex items-center gap-2 text-gray-600">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <h3 className="font-display font-semibold text-xs uppercase tracking-widest">{t.trustBadge}</h3>
+              </div>
+              <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
+                {t.trustDisclaimer}
+              </p>
+              <div className="grid sm:grid-cols-3 gap-4 pt-3 border-t border-gray-200">
+                {t.trustItems.map((item: any, idx: number) => (
+                  <div key={idx} className="space-y-1.5">
+                    <span className="text-base" aria-hidden>{item.icon}</span>
+                    <p className="text-[10px] font-bold text-gray-700">{item.title}</p>
+                    <p className="text-[10px] text-gray-500 leading-relaxed">{item.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════
           PERFORMANCE CHART (Recharts)
       ════════════════════════════════════════════════════════════ */}
-      <section id="growth-simulator" className="py-20 bg-gray-50 border-b border-gray-200">
+      <section id="growth-simulator" className="py-20 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeUp>
             <div className="text-center mb-10">
@@ -606,7 +712,10 @@ export default function LandingPage() {
               <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between">
                 
                 {/* Dynamic Area Chart */}
-                <div className="h-64 sm:h-72 w-full mb-6">
+                <div className="h-64 sm:h-72 w-full mb-2">
+                  <p className="text-[11px] font-semibold text-gray-500 mb-4 px-2 uppercase tracking-wide">
+                    Compare <span className="text-slate-800 font-bold">{selectedCategory}</span> against alternatives
+                  </p>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 10, right: 4, left: 0, bottom: 0 }}>
                       <defs>
@@ -635,39 +744,49 @@ export default function LandingPage() {
                         contentStyle={{ background: '#fff', border: '1px solid #ede9e3', borderRadius: 12, fontSize: 11 }}
                         formatter={(val: number) => [`₹${val.toLocaleString('en-IN')}`]}
                       />
-                      <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: '#6b6159' }} />
+                      <Legend 
+                        iconSize={8} 
+                        wrapperStyle={{ fontSize: 11, color: '#6b6159' }} 
+                        formatter={(value) => {
+                          const isSelected = value === selectedCategory;
+                          return <span style={{ fontWeight: isSelected ? 700 : 500, color: isSelected ? '#1e293b' : '#64748b' }}>{value}</span>;
+                        }}
+                      />
                       <Area
                         type="monotone"
                         name="Large Cap Equity"
                         dataKey="largeCap"
                         stroke="#1e3a5f"
-                        strokeWidth={selectedCategory === 'Large Cap Equity' ? 3.5 : 1.2}
+                        strokeWidth={selectedCategory === 'Large Cap Equity' ? 3.5 : 1.5}
+                        strokeDasharray={selectedCategory === 'Large Cap Equity' ? undefined : "5 5"}
                         fill="url(#gLC)"
                         dot={false}
-                        activeDot={selectedCategory === 'Large Cap Equity' ? { r: 5 } : false}
-                        opacity={selectedCategory === 'Large Cap Equity' ? 1.0 : 0.35}
+                        activeDot={selectedCategory === 'Large Cap Equity' ? { r: 5, fill: '#1e3a5f' } : false}
+                        opacity={selectedCategory === 'Large Cap Equity' ? 1.0 : 0.4}
                       />
                       <Area
                         type="monotone"
                         name="Balanced Hybrid"
                         dataKey="hybrid"
                         stroke="#7c3aed"
-                        strokeWidth={selectedCategory === 'Balanced Hybrid' ? 3.5 : 1.2}
+                        strokeWidth={selectedCategory === 'Balanced Hybrid' ? 3.5 : 1.5}
+                        strokeDasharray={selectedCategory === 'Balanced Hybrid' ? undefined : "5 5"}
                         fill="url(#gHY)"
                         dot={false}
-                        activeDot={selectedCategory === 'Balanced Hybrid' ? { r: 5 } : false}
-                        opacity={selectedCategory === 'Balanced Hybrid' ? 1.0 : 0.35}
+                        activeDot={selectedCategory === 'Balanced Hybrid' ? { r: 5, fill: '#7c3aed' } : false}
+                        opacity={selectedCategory === 'Balanced Hybrid' ? 1.0 : 0.4}
                       />
                       <Area
                         type="monotone"
                         name="Debt Fund"
                         dataKey="debt"
                         stroke="#0d9488"
-                        strokeWidth={selectedCategory === 'Debt Fund' ? 3.5 : 1.2}
+                        strokeWidth={selectedCategory === 'Debt Fund' ? 3.5 : 1.5}
+                        strokeDasharray={selectedCategory === 'Debt Fund' ? undefined : "5 5"}
                         fill="url(#gDT)"
                         dot={false}
-                        activeDot={selectedCategory === 'Debt Fund' ? { r: 5 } : false}
-                        opacity={selectedCategory === 'Debt Fund' ? 1.0 : 0.35}
+                        activeDot={selectedCategory === 'Debt Fund' ? { r: 5, fill: '#0d9488' } : false}
+                        opacity={selectedCategory === 'Debt Fund' ? 1.0 : 0.4}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -835,111 +954,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════
-          DATA INTEGRITY
-      ════════════════════════════════════════════════════════════ */}
-      <section id="integrity" className="py-20 bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeUp className="text-center mb-12">
-            <SectionLabel>{t.integritySectionLabel}</SectionLabel>
-            <h2 className="text-2xl sm:text-3xl font-display font-semibold text-slate-800 mb-3">
-              {t.integrityTitle}
-            </h2>
-            <p className="text-sm text-gray-600 max-w-xl mx-auto">
-              {t.integritySub}
-            </p>
-          </FadeUp>
 
-          <FadeUp delay={0.1}>
-            <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-              {/* Computed Data card */}
-              <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="badge-computed py-1.5">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" />
-                    </svg>
-                    {t.integrityBadgeComputed}
-                  </span>
-                  <span className="text-[10px] text-blue-500 font-medium">{t.integritySource}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { l: t.integrityLabelCagr, v: '14.2%' },
-                    { l: t.integrityLabelVol, v: t.integrityVolVal },
-                    { l: t.integrityLabelSharpe, v: '0.87' },
-                    { l: t.integrityLabelMaxdd, v: '-28.3%' },
-                    { l: t.integrityLabelExpr, v: '1.1%' },
-                    { l: t.integrityLabelAum, v: t.integrityLabelAumVal },
-                  ].map(m => (
-                    <div key={m.l} className="bg-white rounded-xl px-3 py-2 border border-blue-100">
-                      <p className="text-[9px] uppercase tracking-wider text-blue-400 font-semibold">{m.l}</p>
-                      <p className="font-display font-bold text-slate-800 tabular-nums mt-0.5">{m.v}</p>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-blue-600 font-medium">{t.integrityTickComputed}</p>
-              </div>
 
-              {/* AI Explanation card */}
-              <div className="bg-violet-50/50 border border-violet-200 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="badge-ai py-1.5">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                    </svg>
-                    {t.integrityBadgeAi}
-                  </span>
-                  <span className="text-[10px] text-violet-500 font-medium">{t.integritySourceAi}</span>
-                </div>
-                <div className="bg-white border border-violet-100 rounded-xl p-4">
-                  <p className="text-sm text-slate-700 leading-relaxed">
-                    {t.integrityAiQuote}
-                  </p>
-                </div>
-                <p className="text-xs text-violet-600 font-medium">{t.integrityTickExplanation}</p>
-              </div>
-            </div>
-          </FadeUp>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════
-          TRUST & SAFETY
-      ════════════════════════════════════════════════════════════ */}
-      <section id="trust" className="py-20 bg-gray-50 border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeUp className="text-center mb-10">
-            <SectionLabel>{t.integritySectionLabel}</SectionLabel>
-            <h2 className="text-2xl sm:text-3xl font-display font-semibold text-slate-800">
-              {t.trustTitle}
-            </h2>
-          </FadeUp>
-
-          <FadeUp delay={0.1}>
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 sm:p-8 space-y-5">
-              <div className="flex items-center gap-2.5 text-amber-700">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                <h3 className="font-display font-semibold text-base">{t.trustBadge}</h3>
-              </div>
-              <p className="text-sm text-amber-900 leading-relaxed font-medium">
-                {t.trustDisclaimer}
-              </p>
-              <div className="grid sm:grid-cols-3 gap-4 pt-2 border-t border-amber-200">
-                {t.trustItems.map((item: any, idx: number) => (
-                  <div key={idx} className="space-y-1.5">
-                    <span className="text-xl" aria-hidden>{item.icon}</span>
-                    <p className="text-xs font-semibold text-amber-800">{item.title}</p>
-                    <p className="text-xs text-amber-700 leading-relaxed">{item.body}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </FadeUp>
-        </div>
-      </section>
 
       {/* ════════════════════════════════════════════════════════════
           FINAL CTA
