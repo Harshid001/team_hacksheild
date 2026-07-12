@@ -1,117 +1,74 @@
-# team_hacksheild
+# Team HackShield - MF Voice Advisor
 
-> Replace this short description with what team_hacksheild does.
+Welcome to the Team HackShield repository! This project features a voice-first Mutual Fund Advisory Platform.
 
-## Table of contents
+## Project Structure
 
-- [About](#about)
-- [Features](#features)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Project structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+This repository contains the following main components:
 
-## About
+- **`mf-voice-advisor/`**: The core application monorepo containing a React + Vite web app and an Express + TypeScript API (with MongoDB, OpenAI, and Socket.io).
+- **`start_ollama_tunnel.bat`**: A script to start an Ngrok tunnel with a permanent static domain for exposing the local Ollama LLM to external services (like Vercel).
+- **`run_hidden_tunnel.vbs`**: A VBScript to run the Ollama Ngrok tunnel in the background without keeping a command prompt window open.
 
-A concise description of the project goes here. Explain the purpose and high-level goals of team_hacksheild.
+## Core Application: MF Voice Advisor
 
-## Features
+The main application resides in the `mf-voice-advisor` directory. Here is a quick overview of its tech stack and setup.
 
-- Feature 1 — short description
-- Feature 2 — short description
-- Feature 3 — short description
+### Architecture
 
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
-List the things needed to run the project. Examples:
-
-- Git
-- Node.js (>=14) / Python 3.x / Go 1.x — replace with actual runtime
-- Any other services or accounts
-
-### Installation
-
-1. Clone the repo
-
-```bash
-git clone https://github.com/Harshid001/team_hacksheild.git
-cd team_hacksheild
+```text
+team_hacksheild/
+├── mf-voice-advisor/
+│   ├── apps/
+│   │   ├── web/          # React + Vite + Tailwind frontend
+│   │   └── api/          # Express + TypeScript + MongoDB API
+│   └── packages/
+│       └── shared/       # Shared TypeScript types
+├── start_ollama_tunnel.bat
+└── run_hidden_tunnel.vbs
 ```
 
-2. Install dependencies (example — replace with real commands)
+### Tech Stack
+- **Frontend**: React 18, Vite, TypeScript, Tailwind CSS, Framer Motion
+- **Backend**: Express 5, TypeScript, MongoDB, OpenAI, Ollama, Socket.io
+- **Monorepo Management**: npm workspaces
 
-- For Node.js projects:
+### Quick Start
 
-```bash
-npm install
-# or
-pnpm install
-# or
-yarn
-```
+1. **Install Dependencies**
+   Navigate to the core application folder and install dependencies:
+   ```bash
+   cd mf-voice-advisor
+   npm install
+   ```
 
-- For Python projects:
+2. **Environment Variables**
+   Ensure you have `.env` files set up in both `apps/api` and `apps/web`. Example variables:
+   - `apps/api/.env`: `PORT`, `MONGODB_URI`, `OPENAI_API_KEY`, `OLLAMA_BASE_URL` (points to the Ngrok tunnel if deployed), etc.
+   - `apps/web/.env`: `VITE_API_URL`, `VITE_SOCKET_URL`, etc.
 
-```bash
-python -m venv .venv
-source .venv/bin/activate  # macOS / Linux
-.\.venv\Scripts\activate   # Windows
-pip install -r requirements.txt
-```
+3. **Start the Tunnel (Optional)**
+   If you are running Ollama locally and want to expose it to the backend running elsewhere, start the tunnel from the root directory:
+   ```cmd
+   # Run visibly:
+   start_ollama_tunnel.bat
+   
+   # Or run hidden in background:
+   cscript run_hidden_tunnel.vbs
+   ```
 
-3. Run the project (example)
+4. **Development**
+   Start both apps concurrently from `mf-voice-advisor`:
+   ```bash
+   # Terminal 1 - API
+   cd mf-voice-advisor/apps/api && npm run dev
+   
+   # Terminal 2 - Web
+   cd mf-voice-advisor/apps/web && npm run dev
+   ```
 
-```bash
-# Node.js
-npm start
-# Python
-python main.py
-```
-
-## Usage
-
-Show common use cases and example commands or screenshots here. Replace the examples below with actual usage for this project.
-
-```bash
-# example command to run a task
-npm run build
-```
-
-## Project structure
-
-A brief overview of the main folders and files. Update to reflect the repository contents.
-
-- /src — source code
-- /docs — documentation
-- /tests — tests
-- README.md — this file
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-new-feature`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature/my-new-feature`
-5. Open a Pull Request
-
-Please add tests and update documentation where appropriate.
+## More Information
+For detailed API contracts, WebSocket events, and project documentation, please refer to the detailed `README.md` inside the `mf-voice-advisor/` directory.
 
 ## License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details. If you prefer another license, update this section accordingly.
-
-## Contact
-
-Project maintainer: Harshid001
-
-For questions or help, open an issue in this repository.
+MIT — HackShield Team
