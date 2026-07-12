@@ -1,10 +1,21 @@
-# MF Voice Advisor
+# 🎙️ MF Voice Advisor
 
-A voice-first Mutual Fund Advisory Platform — a monorepo containing a React + Vite web app and an Express + TypeScript API with MongoDB, OpenAI, and Socket.io.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
+  <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
+</p>
 
-## Architecture
+A **voice-first Mutual Fund Advisory Platform**. This monorepo contains a React + Vite web application and an Express + TypeScript API, powered by MongoDB, OpenAI (GPT & Whisper), and Socket.io for real-time interactions.
 
-```
+---
+
+## 🏗️ Architecture
+
+```text
 mf-voice-advisor/
 ├── apps/
 │   ├── web/          # React + Vite + Tailwind frontend
@@ -13,40 +24,43 @@ mf-voice-advisor/
     └── shared/       # Shared TypeScript types
 ```
 
-## Tech Stack
+## 💻 Tech Stack
 
 ### Frontend (`apps/web`)
-- **React 18** + **Vite** + **TypeScript**
-- **Tailwind CSS** + **Framer Motion**
-- **React Router v6**, **React Router DOM v6**
-- **React OAuth (Google)**, **Axios**, **Socket.io Client**
-- **Recharts**, **Recharts**, **EventEmitter3**, **JWT Decode**
+- **Core**: React 18, Vite, TypeScript
+- **Styling**: Tailwind CSS, Framer Motion
+- **Routing & State**: React Router v6, Context API
+- **Utilities**: React OAuth (Google), Axios, Socket.io Client, Recharts, EventEmitter3, JWT Decode
 
 ### Backend (`apps/api`)
-- **Express 5** + **TypeScript** + **tsx**
-- **MongoDB** + **Mongoose**
-- **OpenAI** (GPT, Whisper STT), **Ollama** (local LLM)
-- **Socket.io** (WebSocket), **Google Auth Library**, **JWT**, **bcrypt**
-- **Socket.io**, **Cookie Parser**, **CORS**, **dotenv**
+- **Core**: Express 5, TypeScript, tsx
+- **Database**: MongoDB, Mongoose
+- **AI/ML**: OpenAI (GPT-4o, Whisper STT), Ollama (local LLM fallback)
+- **Real-time & Auth**: Socket.io, Google Auth Library, JWT, bcrypt
+- **Utilities**: Cookie Parser, CORS, dotenv
 
 ### Shared (`packages/shared`)
-- Shared TypeScript types between web and API
+- **Types**: Shared TypeScript interfaces/types between web and API
 
-## Quick Start
+---
 
-### Prerequisites
-- Node.js 20+
-- MongoDB (local or Atlas)
-- OpenAI API key (for GPT + Whisper)
-- Google OAuth credentials (optional, for Google OAuth)
-- Ollama (optional, for local LLM)
+## 🚀 Quick Start
 
-### Install Dependencies
+### 📋 Prerequisites
+- **Node.js**: v20+
+- **Database**: MongoDB (local or Atlas)
+- **AI Keys**: OpenAI API key (for GPT + Whisper)
+- **Authentication**: Google OAuth credentials (optional, for Google login)
+- **Local AI**: Ollama (optional, for local LLM)
+
+### 📦 Install Dependencies
 ```bash
 npm install
 ```
 
-### Environment Variables
+### ⚙️ Environment Variables
+
+Create `.env` files in both `apps/api` and `apps/web`.
 
 **`apps/api/.env`**
 ```env
@@ -69,9 +83,9 @@ VITE_GOOGLE_CLIENT_ID=your-google-client-id
 VITE_SOCKET_URL=http://localhost:4000
 ```
 
-### Development
+### 🏃‍♂️ Development
 
-**Start both apps concurrently (from root):**
+Start both apps concurrently from the root of `mf-voice-advisor`:
 ```bash
 # Terminal 1 - API
 cd apps/api && npm run dev
@@ -79,131 +93,62 @@ cd apps/api && npm run dev
 # Terminal 2 - Web
 cd apps/web && npm run dev
 ```
+- **API**: http://localhost:4000
+- **Web**: http://localhost:5173
 
-- API: http://localhost:4000
-- Web: http://localhost:5173
+---
 
-### Build
-```bash
-# Build web app
-npm run build
-```
-
-## Project Structure
+## 📂 Project Structure
 
 ### `apps/web` — Frontend
-```
+```text
 src/
-├── components/       # Reusable UI components
-│   ├── AuthModal.tsx
-│   ├── ConversationBubble.tsx
-│   ├── DisclaimerBanner.tsx
-│   ├── ListeningIndicator.tsx
-│   ├── ProfileDropdown.tsx
-│   ├── ProfileModal.tsx
-│   ├── QuickReplies.tsx
-│   ├── ReportCard.tsx
-│   ├── SettingsModal.tsx
-│   ├── SipCalculatorWidget.tsx
-│   ├── StageLabel.tsx
-│   └── TextFallback.tsx
-├── context/
-│   ├── AuthContext.tsx
-│   └── ThemeContext.tsx
-├── pages/
-│   ├── ConversationPage.tsx
-│   ├── DemoPage.tsx
-│   ├── DisclaimerPage.tsx
-│   ├── LandingPage.tsx
-│   ├── OAuthCallback.tsx
-│   ├── ReportPage.tsx
-│   └── SignupPage.tsx
-├── router.tsx
+├── components/       # Reusable UI components (Auth, Chat Bubbles, SIP Calculator)
+├── context/          # Auth and Theme Contexts
+├── pages/            # App Routes (Landing, Conversation, Report, Demo)
+├── router.tsx        # React Router Configuration
 ├── App.tsx
 └── main.tsx
 ```
-
 **Key Features:**
-- Voice-first conversation UI with real-time streaming
-- Google OAuth + JWT auth flow
-- Conversation stages with visual stage indicators
-- SIP Calculator widget
-- Investment report generation & PDF export
-- Dark/Light theme with persistence
-- Responsive Tailwind UI with Framer Motion animations
+- 🎙️ Voice-first conversation UI with real-time streaming
+- 🔐 Google OAuth + JWT auth flow
+- 📊 SIP Calculator widget & Investment report generation (PDF export)
+- 🌓 Dark/Light theme with persistence
+- 💅 Responsive Tailwind UI with Framer Motion animations
 
 ### `apps/api` — Backend
-```
+```text
 src/
-├── config/
-│   └── fundList.ts
-├── db/
-│   ├── connection.ts
-│   └── models/
-│       ├── Answer.model.ts
-│       ├── ChatMessage.model.ts
-│       ├── ConversationSession.model.ts
-│       ├── FinancialProfile.model.ts
-│       ├── FundMetrics.model.ts
-│       ├── RefreshToken.model.ts
-│       ├── Report.model.ts
-│       └── User.model.ts
-├── middleware/
-│   └── auth.middleware.ts
-├── routes/
-│   ├── analytics.route.ts
-│   ├── auth.route.ts
-│   ├── chat.route.ts
-│   ├── profile.route.ts
-│   └── report.route.ts
-├── services/
-│   ├── analyticsClient.service.ts
-│   ├── chat.service.ts
-│   ├── ollama.service.ts
-│   ├── profile.service.ts
-│   ├── reportComposer.service.ts
-│   └── stt.service.ts
-└── index.ts
+├── config/           # Configuration & Constants (e.g., fund lists)
+├── db/               # Database connection and Mongoose Models
+├── middleware/       # Express middlewares (Auth, Error handling)
+├── routes/           # API endpoints (Auth, Chat, Profile, Report)
+├── services/         # Business logic (AI Clients, STT, Report Composer)
+└── index.ts          # Entry point
 ```
 
-**API Routes:**
-| Route | Description |
-|-------|-------------|
-| `POST /api/auth/register` | Email/password register |
-| `POST /api/auth/login` | Email/password login |
-| `POST /api/auth/google` | Google OAuth |
-| `POST /api/auth/refresh` | Refresh access token |
-| `POST /api/auth/logout` | Logout + revoke refresh token |
-| `GET /api/profile` | Get user profile |
-| `PUT /api/profile` | Update financial profile |
-| `POST /api/chat/start` | Start conversation session |
-| `POST /api/chat/message` | Send message (text/voice) |
-| `POST /api/chat/voice` | Upload voice → STT → LLM response |
-| `GET /api/chat/sessions` | List conversation sessions |
-| `GET /api/report/:sessionId` | Generate investment report |
-| `GET /api/analytics` | Analytics dashboard data |
+**Key API Routes:**
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/auth/google` | POST | Google OAuth Login/Registration |
+| `/api/profile` | GET/PUT | Manage user financial profile |
+| `/api/chat/start` | POST | Start a new conversation session |
+| `/api/chat/message`| POST | Send a text/voice message |
+| `/api/report/:id` | GET | Generate an investment report |
 
 **WebSocket Events (Socket.io):**
-- `chat:message` — Real-time chat streaming
-- `chat:typing` — Typing indicator
-- `voice:stream` — Real-time voice streaming
+- `chat:message` — Real-time chat text streaming
+- `chat:typing` — Typing/Processing indicator
+- `voice:stream` — Real-time voice audio streaming
 
-### `packages/shared`
-```
-src/
-├── types/
-│   ├── api.ts
-│   ├── chat.ts
-│   ├── profile.ts
-│   └── report.ts
-└── index.ts
-```
+---
 
-## Available Scripts
+## 📜 Available Scripts
 
 ### Root
 ```bash
-npm run build          # Build web app
+npm run build          # Build both apps
 ```
 
 ### `apps/web`
@@ -215,63 +160,32 @@ npm run preview  # Preview production build
 
 ### `apps/api`
 ```bash
-npm run dev      # tsx watch mode
-npm run start    # tsx production run
+npm run dev      # tsx watch mode for development
+npm run start    # run compiled production build
 ```
 
-## Environment Setup Details
+---
+
+## 🌍 Environment Setup Details
 
 ### MongoDB
-- Local: `mongodb://localhost:27017/mf-voice-advisor`
-- Atlas: `mongodb+srv://user:pass@cluster.mongodb.net/mf-voice-advisor`
+- **Local**: `mongodb://localhost:27017/mf-voice-advisor`
+- **Atlas**: `mongodb+srv://<user>:<pass>@cluster.mongodb.net/mf-voice-advisor`
 
-### OpenAI
-- Get API key from https://platform.openai.com/api-keys
-- Used for: GPT-4o (chat), Whisper (STT)
+### AI & API Services
+- **OpenAI**: Get API key from [platform.openai.com](https://platform.openai.com/api-keys)
+- **Google OAuth**: Set up in [Google Cloud Console](https://console.cloud.google.com) (Redirect URI: `http://localhost:5173/oauth-callback`)
+- **Ollama**: 
+  ```bash
+  ollama pull llama3
+  ollama serve
+  ```
 
-### Google OAuth
-1. Create project at https://console.cloud.google.com
-2. Enable Google+ API
-3. Create OAuth 2.0 credentials
-4. Add authorized redirect URI: `http://localhost:5173/oauth-callback`
+---
 
-### Ollama (Optional)
-```bash
-ollama pull llama3
-ollama serve
-```
+## 📚 Documentation
+- **API Contracts**: See [docs/API_CONTRACTS.md](docs/API_CONTRACTS.md) for detailed request/response schemas.
+- **Master Doc**: See [docs/MASTER_DOC.md](docs/MASTER_DOC.md) for architecture decisions and product specs.
 
-## Project Scripts
-
-### Development Workflow
-```bash
-# 1. Start MongoDB
-mongod
-
-# 2. Start Ollama (optional)
-ollama serve
-
-# 3. Start API
-cd apps/api && npm run dev
-
-# 4. Start Web
-cd apps/web && npm run dev
-```
-
-### Production Build
-```bash
-cd apps/web && npm run build
-# Deploy dist/ to Vercel/Netlify/Cloudflare Pages
-
-cd apps/api && npm run start
-# Deploy to Railway/Render/Fly.io with MongoDB Atlas
-```
-
-## API Contracts
-See [docs/API_CONTRACTS.md](docs/API_CONTRACTS.md) for detailed request/response schemas.
-
-## Project Documentation
-See [docs/MASTER_DOC.md](docs/MASTER_DOC.md) for architecture decisions and product specs.
-
-## License
+## 📄 License
 MIT — HackShield Team
