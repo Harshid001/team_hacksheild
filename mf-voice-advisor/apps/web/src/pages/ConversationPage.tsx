@@ -41,6 +41,7 @@ export default function ConversationPage() {
   const [sttSupported, setSttSupported] = useState(true)
   const [isAiTyping, setIsAiTyping] = useState(false)
   const [showKeyboard, setShowKeyboard] = useState(false)
+  const [showMobileProfile, setShowMobileProfile] = useState(false)
   
   // Live Profile State
   const [liveProfile, setLiveProfile] = useState<{ age?: string; horizon?: string; amount?: string; risk?: string; targetGoal?: string }>({})
@@ -261,6 +262,41 @@ export default function ConversationPage() {
     )
   }
 
+  const renderProfileContent = () => (
+    <div className="p-6 overflow-y-auto w-full">
+      <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">Live Profile</h3>
+      
+      <div className="space-y-4">
+        {renderProfileField('Age Group', liveProfile.age, 1)}
+        {renderProfileField('Time Horizon', liveProfile.horizon, 2)}
+        
+        {liveProfile.targetGoal && (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-blue-100 dark:bg-blue-800/50 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+            <p className="text-xs text-blue-600 dark:text-blue-300 font-semibold mb-1 relative z-10">Target Goal</p>
+            <p className="font-bold text-slate-800 dark:text-white text-lg relative z-10">{liveProfile.targetGoal}</p>
+          </motion.div>
+        )}
+
+        {renderProfileField('Monthly Investment', liveProfile.amount, 3)}
+        
+        <div className={`border rounded-xl p-4 transition-all duration-300 ${
+          stageIndex === 4 
+            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400 ring-2 ring-blue-500/20 shadow-md' 
+            : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm'
+        }`}>
+          <p className={`text-xs mb-1 ${stageIndex === 4 ? 'text-blue-600 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>Risk Comfort</p>
+          <p className={`font-semibold flex items-center gap-2 ${
+            liveProfile.risk ? 'text-slate-800 dark:text-white' : 'text-gray-300 dark:text-gray-600'
+          }`}>
+            {liveProfile.risk && <span className="w-2 h-2 rounded-full bg-amber-500"></span>}
+            {liveProfile.risk || '—'}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <main className="h-[100dvh] max-h-[100dvh] flex flex-col md:flex-row bg-gray-50 dark:bg-slate-900 overflow-hidden relative">
 
@@ -272,23 +308,6 @@ export default function ConversationPage() {
           <button
             onClick={() => {
               stopSpeaking()
-              navigate('/')
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800/50 hover:bg-red-50/50 dark:hover:bg-red-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 select-none"
-            aria-label="Exit conversation"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span>{t.convExit}</span>
-            </button>
-
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Toggle theme"
-            >
               {theme === 'dark' ? (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -477,40 +496,46 @@ export default function ConversationPage() {
       </div>
 
       {/* ── Live Profile Sidebar ─────────────────────────────────── */}
-      <div className="hidden md:flex w-80 bg-slate-50 dark:bg-slate-900 flex-col border-l border-gray-200 dark:border-slate-800 relative z-20">
-        <div className="p-6 overflow-y-auto">
-          <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">Live Profile</h3>
-          
-          <div className="space-y-4">
-            {renderProfileField('Age Group', liveProfile.age, 1)}
-            {renderProfileField('Time Horizon', liveProfile.horizon, 2)}
-            
-            {liveProfile.targetGoal && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-blue-100 dark:bg-blue-800/50 rounded-full -translate-y-1/2 translate-x-1/3"></div>
-                <p className="text-xs text-blue-600 dark:text-blue-300 font-semibold mb-1 relative z-10">Target Goal</p>
-                <p className="font-bold text-slate-800 dark:text-white text-lg relative z-10">{liveProfile.targetGoal}</p>
-              </motion.div>
-            )}
-
-            {renderProfileField('Monthly Investment', liveProfile.amount, 3)}
-            
-            <div className={`border rounded-xl p-4 transition-all duration-300 ${
-              stageIndex === 4 
-                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400 ring-2 ring-blue-500/20 shadow-md' 
-                : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm'
-            }`}>
-              <p className={`text-xs mb-1 ${stageIndex === 4 ? 'text-blue-600 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>Risk Comfort</p>
-              <p className={`font-semibold flex items-center gap-2 ${
-                liveProfile.risk ? 'text-slate-800 dark:text-white' : 'text-gray-300 dark:text-gray-600'
-              }`}>
-                {liveProfile.risk && <span className="w-2 h-2 rounded-full bg-amber-500"></span>}
-                {liveProfile.risk || '—'}
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="hidden md:flex w-80 bg-slate-50 dark:bg-slate-900 flex-col border-l border-gray-200 dark:border-slate-800 relative z-20 overflow-y-auto">
+        {renderProfileContent()}
       </div>
+
+      {/* ── Mobile Profile Drawer ─────────────────────────────────── */}
+      <AnimatePresence>
+        {showMobileProfile && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileProfile(false)}
+              className="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[90]"
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="md:hidden fixed right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-slate-50 dark:bg-slate-900 z-[100] shadow-2xl flex flex-col"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+                <h2 className="text-lg font-display font-bold text-slate-800 dark:text-white">Live Profile</h2>
+                <button
+                  onClick={() => setShowMobileProfile(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {renderProfileContent()}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </main>
   )
 }
