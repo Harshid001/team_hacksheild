@@ -1,6 +1,7 @@
+import { APP_NAME } from './config/constants'
 /**
  * ============================================================
- * App.tsx  — FundWise: AI Voice-Driven Mutual Fund Advisor
+ * App.tsx  — MF Advisor: AI Voice-Driven Mutual Fund Advisor
  * ============================================================
  *
  * HOW TO SWAP MOCKED LOGIC FOR REAL API CALLS
@@ -36,6 +37,7 @@ import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 
 export default function App() {
+  document.title = APP_NAME + ' — AI Mutual Fund Advisor'
   return (
     <ThemeProvider>
       <AuthProvider>

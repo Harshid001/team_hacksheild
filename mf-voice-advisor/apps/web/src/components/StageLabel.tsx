@@ -14,40 +14,33 @@ export default function StageLabel({ stageIndex }: Props) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en
   const stageKeys = ['stageAge', 'stageAmt', 'stageGoal', 'stageIncome', 'stageHorizon', 'stageRisk']
   const label = t[stageKeys[safeIndex]] || STAGE_LABELS[safeIndex]
-  const progress = Math.round(((safeIndex) / (TOTAL_STAGES - 1)) * 100)
 
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <div className="flex items-center gap-2">
-        <motion.span
-          key={label}
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="text-[11px] font-semibold text-slate-600 tracking-wide uppercase hidden sm:block"
-          role="status"
-          aria-live="polite"
-        >
-          {label}
-        </motion.span>
-        <span className="text-[10px] text-gray-400 tabular-nums">
-          {safeIndex + 1}/{TOTAL_STAGES}
-        </span>
-      </div>
+      <motion.span
+        key={label}
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase hidden sm:block"
+        role="status"
+        aria-live="polite"
+      >
+        {label}
+      </motion.span>
 
-      {/* Progress bar */}
-      <div className="w-28 sm:w-36 h-1 bg-gray-200 rounded-full overflow-hidden">
-        <motion.div
-          className="h-full bg-gradient-to-r from-slate-600 to-blue-500 rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          aria-valuenow={progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          role="progressbar"
-          aria-label={`Conversation progress: ${progress}%`}
-        />
+      {/* Segmented Progress Bar */}
+      <div className="flex gap-1.5" role="progressbar" aria-valuenow={safeIndex + 1} aria-valuemin={1} aria-valuemax={TOTAL_STAGES}>
+        {Array.from({ length: TOTAL_STAGES }).map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 rounded-full transition-all duration-500 ${
+              i <= safeIndex 
+                ? 'w-6 sm:w-8 bg-blue-500' 
+                : 'w-2 sm:w-3 bg-gray-200 dark:bg-slate-700'
+            }`}
+          />
+        ))}
       </div>
     </div>
   )

@@ -1,3 +1,4 @@
+import { APP_NAME } from '../config/constants'
 import { motion } from 'framer-motion'
 
 interface Props {
@@ -21,7 +22,7 @@ export default function ListeningIndicator({ state, onClick, disabled }: Props) 
     switch (state) {
       case 'idle':      return 'Tap to speak'
       case 'listening': return 'Listening...'
-      case 'speaking':  return 'FundWise is speaking'
+      case 'speaking':  return `${APP_NAME} is speaking`
       case 'thinking':  return 'Thinking...'
       default:          return ''
     }

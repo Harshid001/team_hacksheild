@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { startSession } from '../lib/api'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import { TRANSLATIONS } from '../lib/translations'
+import { APP_NAME } from '../config/constants'
 
 export default function DisclaimerPage() {
   const [agreed, setAgreed] = useState(false)
@@ -35,29 +36,46 @@ export default function DisclaimerPage() {
   const btnStart = t.disclaimerBtnStart
 
   return (
-    <main className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
-      {/* Decorative background gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/40 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-100/30 rounded-full blur-[100px] pointer-events-none" />
+    <main className="min-h-[100dvh] flex flex-col items-center px-4 py-8 sm:p-6 lg:p-8 relative bg-theme-bg overflow-x-hidden">
+      
+      {/* Minimal Header */}
+      <header className="w-full max-w-2xl flex items-center justify-start mb-8 sm:mb-12 relative z-20">
+         <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-bold shadow-md shadow-blue-900/20">
+              M
+            </div>
+            <span className="font-display font-bold text-lg text-theme-text truncate tracking-tight">{APP_NAME}</span>
+         </div>
+      </header>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-2xl relative z-10 flex flex-col gap-8"
+        className="w-full max-w-2xl relative z-10 flex flex-col gap-6"
       >
-        <header className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
+        <div className="text-left space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold uppercase tracking-widest">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
             {badgeText}
           </div>
-          <h1 className="text-4xl sm:text-5xl font-display font-bold text-slate-800 leading-tight">
-            {titlePart1}<br />
-            <span className="text-gradient">{titlePart2}</span>
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-theme-text leading-tight">
+            {titlePart1} <span className="text-gradient">{titlePart2}</span>
           </h1>
-          <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-theme-text-secondary leading-relaxed max-w-lg">
             {subText}
           </p>
-        </header>
+        </div>
+
+        {/* Trust Badges Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          {t.trustItems.map((item: any, idx: number) => (
+            <div key={idx} className="bg-theme-elevated border border-theme-border p-4 rounded-xl shadow-sm flex flex-col gap-1.5">
+              <span className="text-xl mb-1" aria-hidden>{item.icon}</span>
+              <p className="text-[10px] font-bold text-theme-text uppercase tracking-widest">{item.title}</p>
+              <p className="text-[11px] text-theme-text-secondary leading-relaxed">{item.body}</p>
+            </div>
+          ))}
+        </div>
 
         <DisclaimerBanner 
           variant="acknowledge" 
@@ -65,11 +83,11 @@ export default function DisclaimerPage() {
           onAcknowledgeChange={setAgreed}
         />
 
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-start gap-4 mt-2">
           <button
             onClick={handleStart}
             disabled={!agreed || loading}
-            className="btn-primary w-full sm:w-auto text-lg px-8 py-4 flex items-center justify-center gap-2"
+            className="btn-primary w-full sm:w-auto text-base px-8 py-4 flex items-center justify-center gap-2 disabled:opacity-40 disabled:grayscale disabled:cursor-not-allowed transition-all shadow-xl disabled:shadow-none"
           >
             {loading ? (
               <>

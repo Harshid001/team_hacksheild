@@ -1,3 +1,4 @@
+import { APP_NAME } from '../config/constants'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -39,6 +40,7 @@ export default function ConversationPage() {
   const [isMuted, setIsMuted] = useState(false)
   const [sttSupported, setSttSupported] = useState(true)
   const [isAiTyping, setIsAiTyping] = useState(false)
+  const [showKeyboard, setShowKeyboard] = useState(false)
   
   // Live Profile State
   const [liveProfile, setLiveProfile] = useState<{ age?: string; horizon?: string; amount?: string; risk?: string; targetGoal?: string }>({})
@@ -89,7 +91,7 @@ export default function ConversationPage() {
           // Greeting was empty (model may have returned nothing) — use a fallback
           console.warn('[ConversationPage] Empty greeting from LLM — using fallback')
           setIsAiTyping(false)
-          handleNewQuestion('Hello! I\'m your MF Advisor. I\'d love to help you with your investment planning. To start, could you tell me your age?')
+          handleNewQuestion(`Hello! I\'m your ${APP_NAME}. I\'d love to help you with your investment planning. To start, could you tell me your age?`)
         }
       } catch (err: any) {
         console.error('[ConversationPage] Session start failed:', err?.message || err)
@@ -107,7 +109,8 @@ export default function ConversationPage() {
       }
     }
     init()
-    return () => { mounted = false; stopSpeaking() }
+
+  return () => { mounted = false; stopSpeaking() }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -237,6 +240,27 @@ export default function ConversationPage() {
     }
   }
 
+  const renderProfileField = (label: string, value: string | undefined, activeStepIndex: number) => {
+    const isCurrent = stageIndex === activeStepIndex;
+    const isAnswered = !!value;
+    return (
+      <div className={`border rounded-xl p-4 transition-all duration-300 ${
+        isCurrent 
+          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400 ring-2 ring-blue-500/20 shadow-md' 
+          : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm'
+      }`}>
+        <p className={`text-xs mb-1 ${isCurrent ? 'text-blue-600 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>
+          {label}
+        </p>
+        <p className={`font-semibold ${
+          isAnswered ? 'text-slate-800 dark:text-white' : 'text-gray-300 dark:text-gray-600'
+        }`}>
+          {value || '—'}
+        </p>
+      </div>
+    )
+  }
+
   return (
     <main className="h-[100dvh] max-h-[100dvh] flex flex-col md:flex-row bg-gray-50 dark:bg-slate-900 overflow-hidden relative">
 
@@ -340,8 +364,8 @@ export default function ConversationPage() {
         </div>
 
         {/* ── Bottom Input Area ────────────────────────────────────── */}
-        <div className="bg-white border-t border-gray-200 pt-3 pb-4 px-4 flex-shrink-0">
-          <div className="max-w-2xl mx-auto space-y-3">
+        <div className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 pt-3 pb-6 px-4 flex-shrink-0 relative z-20">
+          <div className="max-w-2xl mx-auto space-y-4">
             {/* Reverse SIP Calculator Widget */}
             <AnimatePresence>
               {!isAiTyping && orbState !== 'thinking' && stageIndex === 3 && (
@@ -376,50 +400,110 @@ export default function ConversationPage() {
               )}
             </AnimatePresence>
 
-            <TextFallback
-              onSend={(val) => handleSendAnswer(val)}
-              disabled={orbState === 'thinking' || !sessionId}
-              orbState={orbState}
-            />
-            <p className="text-[10px] text-center text-gray-300 select-none">
-              {t.convInputHint}
-            </p>
+            {/* Primary Input Container */}
+            <div className="flex flex-col items-center justify-center min-h-[120px]">
+              <AnimatePresence mode="wait">
+                {!showKeyboard ? (
+                  <motion.div 
+                    key="voice"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="flex flex-col items-center w-full relative"
+                  >
+                    {/* Live interim transcript floating above orb */}
+                    <AnimatePresence>
+                      {interimText && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          className="absolute -top-14 bg-slate-800 text-white px-4 py-2 rounded-xl text-sm shadow-lg max-w-xs truncate z-50"
+                        >
+                          "{interimText}..."
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="transform scale-75 sm:scale-90 origin-center -my-4">
+                      <ListeningIndicator
+                        state={orbState}
+                        onClick={handleOrbClick}
+                        disabled={!sessionId || isMuted}
+                      />
+                    </div>
+
+                    {!isAiTyping && orbState === 'idle' && (
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+                        You can type, tap a suggestion, or just speak your answer
+                      </p>
+                    )}
+
+                    <button
+                      onClick={() => setShowKeyboard(true)}
+                      className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors"
+                    >
+                      Type instead
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="keyboard"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="w-full flex flex-col items-center"
+                  >
+                    <TextFallback
+                      onSend={(val) => {
+                         setShowKeyboard(false)
+                         handleSendAnswer(val)
+                      }}
+                      disabled={orbState === 'thinking' || !sessionId}
+                      orbState={orbState}
+                    />
+                    <button
+                      onClick={() => setShowKeyboard(false)}
+                      className="mt-3 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 transition-colors"
+                    >
+                      Use voice instead
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── Live Profile Sidebar ─────────────────────────────────── */}
-      <div className="hidden md:flex w-80 bg-slate-50 flex-col border-l border-gray-200 relative">
-        <div className="p-6">
-          <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-6">Live Profile</h3>
+      <div className="hidden md:flex w-80 bg-slate-50 dark:bg-slate-900 flex-col border-l border-gray-200 dark:border-slate-800 relative z-20">
+        <div className="p-6 overflow-y-auto">
+          <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">Live Profile</h3>
           
           <div className="space-y-4">
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-              <p className="text-xs text-slate-500 mb-1">Age Group</p>
-              <p className="font-semibold text-slate-800">{liveProfile.age || '—'}</p>
-            </div>
+            {renderProfileField('Age Group', liveProfile.age, 1)}
+            {renderProfileField('Time Horizon', liveProfile.horizon, 2)}
             
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-              <p className="text-xs text-slate-500 mb-1">Time Horizon</p>
-              <p className="font-semibold text-slate-800">{liveProfile.horizon || '—'}</p>
-            </div>
-
             {liveProfile.targetGoal && (
-              <div className="bg-white border border-blue-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-full -translate-y-1/2 translate-x-1/3"></div>
-                <p className="text-xs text-blue-600 font-semibold mb-1 relative z-10">Target Goal</p>
-                <p className="font-bold text-slate-800 text-lg relative z-10">{liveProfile.targetGoal}</p>
-              </div>
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-blue-100 dark:bg-blue-800/50 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+                <p className="text-xs text-blue-600 dark:text-blue-300 font-semibold mb-1 relative z-10">Target Goal</p>
+                <p className="font-bold text-slate-800 dark:text-white text-lg relative z-10">{liveProfile.targetGoal}</p>
+              </motion.div>
             )}
+
+            {renderProfileField('Monthly Investment', liveProfile.amount, 3)}
             
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-              <p className="text-xs text-slate-500 mb-1">Monthly Investment</p>
-              <p className="font-semibold text-slate-800">{liveProfile.amount || '—'}</p>
-            </div>
-            
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-              <p className="text-xs text-slate-500 mb-1">Risk Comfort</p>
-              <p className="font-semibold text-slate-800 flex items-center gap-2">
+            <div className={`border rounded-xl p-4 transition-all duration-300 ${
+              stageIndex === 4 
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400 ring-2 ring-blue-500/20 shadow-md' 
+                : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm'
+            }`}>
+              <p className={`text-xs mb-1 ${stageIndex === 4 ? 'text-blue-600 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>Risk Comfort</p>
+              <p className={`font-semibold flex items-center gap-2 ${
+                liveProfile.risk ? 'text-slate-800 dark:text-white' : 'text-gray-300 dark:text-gray-600'
+              }`}>
                 {liveProfile.risk && <span className="w-2 h-2 rounded-full bg-amber-500"></span>}
                 {liveProfile.risk || '—'}
               </p>
@@ -427,65 +511,6 @@ export default function ConversationPage() {
           </div>
         </div>
       </div>
-
-      {/* ── Voice Overlay (listening mode) ───────────────────────── */}
-      <AnimatePresence>
-        {orbState === 'listening' && (
-          <motion.div
-            key="voice-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="absolute inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white"
-          >
-            <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center">
-              <div>
-                <h2 className="text-xl font-display font-semibold text-blue-300 mb-1">
-                  {t.convListeningTitle}
-                </h2>
-                <p className="text-sm text-slate-300">
-                  {t.convListeningSub}
-                </p>
-              </div>
-
-              <ListeningIndicator
-                state={orbState}
-                onClick={handleOrbClick}
-                disabled={!sessionId || isMuted}
-              />
-
-              {/* Live interim transcript */}
-              <AnimatePresence>
-                {interimText && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 w-full max-w-xs"
-                  >
-                    <p className="text-sm text-white/80 italic leading-relaxed">"{interimText}…"</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <button
-                onClick={() => {
-                  if (stopSttRef.current) {
-                    stopSttRef.current()
-                    stopSttRef.current = null
-                  }
-                  setInterimText('')
-                  setOrbState('idle')
-                }}
-                className="px-5 py-2 rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:text-white active:scale-95 transition-all text-xs font-medium"
-              >
-                {t.convListeningCancel}
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   )
 }

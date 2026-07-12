@@ -1,3 +1,4 @@
+import { APP_NAME } from '../config/constants'
 // Translation file for mf-voice-advisor landing page i18n
 // Supported languages: en, hi, bn, sd, ta, te, ur, pa, gu, kn, ml, mr
 
@@ -131,7 +132,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-aligned educational disclaimer",
     trustDisclaimer: "\"This tool analyzes past performance of publicly available mutual fund data. Past performance does not guarantee future returns. This is an educational tool, not personalized investment advice.\"",
     trustItems: [
-      { icon: "🔒", title: "No transactions", body: "FundWise cannot buy, sell, or process any investment on your behalf." },
+      { icon: "🔒", title: "No transactions", body: `${APP_NAME} cannot buy, sell, or process any investment on your behalf.` },
       { icon: "📊", title: "Public data only", body: "All fund data is sourced from publicly available NAV records (mfapi.in)." },
       { icon: "🎓", title: "Educational only", body: "Always consult a SEBI-registered advisor before making investment decisions." }
     ],
@@ -140,7 +141,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "For first-time investors who want to understand mutual funds through a real conversation — backed by real data.",
     ctaButton: "Start Free Consultation",
     ctaFooterInfo: "No login required · Educational only · No investment transactions",
-    footerCopy: "© 2025 FundWise · Educational advisory platform · Not a SEBI-registered advisor",
+    footerCopy: `© 2025 ${APP_NAME} · Educational advisory platform · Not a SEBI-registered advisor`,
     disclaimerBadge: "AI-Powered • Educational",
     disclaimerTitlePart1: "Your first step toward investing,",
     disclaimerTitlePart2: "guided by AI.",
@@ -294,7 +295,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "सेबी-संरेखित शैक्षिक अस्वीकरण",
     trustDisclaimer: "\"यह उपकरण सार्वजनिक रूप से उपलब्ध म्यूचुअल फंड डेटा के पिछले प्रदर्शन का विश्लेषण करता है। पिछला प्रदर्शन भविष्य के रिटर्न की गारंटी नहीं देता है। यह एक शैक्षिक उपकरण है, न कि व्यक्तिगत निवेश सलाह।\"",
     trustItems: [
-      { icon: "🔒", title: "कोई लेनदेन नहीं", body: "FundWise आपकी ओर से कोई निवेश खरीद, बेच या संसाधित नहीं कर सकता है।" },
+      { icon: "🔒", title: "कोई लेनदेन नहीं", body: `${APP_NAME} आपकी ओर से कोई निवेश खरीद, बेच या संसाधित नहीं कर सकता है।` },
       { icon: "📊", title: "केवल सार्वजनिक डेटा", body: "सभी फंड डेटा सार्वजनिक रूप से उपलब्ध एनएवी रिकॉर्ड (mfapi.in) से लिया गया है।" },
       { icon: "🎓", title: "केवल शैक्षिक", body: "निवेश निर्णय लेने से पहले हमेशा सेबी-पंजीकृत सलाहकार से परामर्श लें।" }
     ],
@@ -303,7 +304,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "उन शुरुआती निवेशकों के लिए जो वास्तविक बातचीत के माध्यम से म्यूचुअल फंड को समझना चाहते हैं — वास्तविक डेटा द्वारा समर्थित।",
     ctaButton: "मुफ़्त परामर्श शुरू करें",
     ctaFooterInfo: "कोई लॉगिन आवश्यक नहीं · केवल शैक्षिक · कोई निवेश लेनदेन नहीं",
-    footerCopy: "© 2025 FundWise · शैक्षिक सलाहकार मंच · सेबी पंजीकृत सलाहकार नहीं",
+    footerCopy: `© 2025 ${APP_NAME} · शैक्षिक सलाहकार मंच · सेबी पंजीकृत सलाहकार नहीं`,
     disclaimerBadge: "एआई-संचालित • शैक्षिक",
     disclaimerTitlePart1: "निवेश की दिशा में आपका पहला कदम,",
     disclaimerTitlePart2: "एआई द्वारा निर्देशित।",
@@ -432,7 +433,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-সংরেখিত শিক্ষামূলক দাবিত্যাগ",
     trustDisclaimer: "\"এই টুল সর্বজনীনভাবে উপলব্ধ মিউচুয়াল ফান্ড ডেটার অতীত কর্মক্ষমতা বিশ্লেষণ করে। এটি একটি শিক্ষামূলক টুল।\"",
     trustItems: [
-      { icon: "🔒", title: "কোনো লেনদেন নেই", body: "FundWise আপনার পক্ষে কোনো বিনিয়োগ ক্রয়, বিক্রয় বা প্রক্রিয়া করতে পারে না।" },
+      { icon: "🔒", title: "কোনো লেনদেন নেই", body: `${APP_NAME} আপনার পক্ষে কোনো বিনিয়োগ ক্রয়, বিক্রয় বা প্রক্রিয়া করতে পারে না।` },
       { icon: "📊", title: "শুধুমাত্র সর্বজনীন ডেটা", body: "সমস্ত ফান্ড ডেটা সর্বজনীন NAV রেকর্ড থেকে।" },
       { icon: "🎓", title: "শুধুমাত্র শিক্ষামূলক", body: "বিনিয়োগ সিদ্ধান্ত নেওয়ার আগে সর্বদা SEBI-নিবন্ধিত উপদেষ্টার সাথে পরামর্শ করুন।" }
     ],
@@ -441,7 +442,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "প্রথমবার বিনিয়োগকারীদের জন্য যারা প্রকৃত কথোপকথনের মাধ্যমে মিউচুয়াল ফান্ড বুঝতে চান।",
     ctaButton: "বিনামূল্যে পরামর্শ শুরু করুন",
     ctaFooterInfo: "কোনো লগইন প্রয়োজন নেই · শুধুমাত্র শিক্ষামূলক · কোনো বিনিয়োগ লেনদেন নেই",
-    footerCopy: "© 2025 FundWise · শিক্ষামূলক পরামর্শ প্ল্যাটফর্ম · SEBI নিবন্ধিত পরামর্শদাতা নয়",
+    footerCopy: `© 2025 ${APP_NAME} · শিক্ষামূলক পরামর্শ প্ল্যাটফর্ম · SEBI নিবন্ধিত পরামর্শদাতা নয়`,
     disclaimerBadge: "AI-চালিত • শিক্ষামূলক",
     disclaimerTitlePart1: "বিনিয়োগের দিকে আপনার প্রথম পদক্ষেপ,",
     disclaimerTitlePart2: "AI দ্বারা পরিচালিত।",
@@ -570,7 +571,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-موافق تعليمي اعلان",
     trustDisclaimer: "\"هي اوزار عوامي طور تي دستياب ميوچل فنڊ ڊيٽا جي ماضي جي ڪارڪردگي جو تجزيو ڪري ٿو. هي هڪ تعليمي اوزار آهي.\"",
     trustItems: [
-      { icon: "🔒", title: "ڪو ٽرانزيڪشن نه", body: "FundWise توهان جي طرف کان ڪو به سيڙپڪاري نٿو ڪري سگهي." },
+      { icon: "🔒", title: "ڪو ٽرانزيڪشن نه", body: `${APP_NAME} توهان جي طرف کان ڪو به سيڙپڪاري نٿو ڪري سگهي.` },
       { icon: "📊", title: "صرف عوامي ڊيٽا", body: "سڀ فنڊ ڊيٽا عوامي NAV رڪارڊن کان." },
       { icon: "🎓", title: "صرف تعليمي", body: "سيڙپڪاري جو فيصلو ڪرڻ کان اڳ هميشه SEBI-رجسٽرڊ صلاحڪار سان صلاح ڪريو." }
     ],
@@ -579,7 +580,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "پهريون ڀيرو سيڙپڪارن لاءِ جيڪي حقيقي گفتگو ذريعي ميوچل فنڊ سمجهڻ چاهين ٿا.",
     ctaButton: "مفت صلاح شروع ڪريو",
     ctaFooterInfo: "ڪو لاگ ان ضروري نه · صرف تعليمي · ڪو سيڙپڪاري ٽرانزيڪشن نه",
-    footerCopy: "© 2025 FundWise · تعليمي صلاح واري پليٽ فارم · SEBI رجسٽرڊ صلاحڪار نه",
+    footerCopy: `© 2025 ${APP_NAME} · تعليمي صلاح واري پليٽ فارم · SEBI رجسٽرڊ صلاحڪار نه`,
     disclaimerBadge: "AI-طاقتور • تعليمي",
     disclaimerTitlePart1: "سيڙپڪاري ڏانهن توهان جو پهريون قدم,",
     disclaimerTitlePart2: "AI ذريعي رهنمائي ڪيل.",
@@ -708,7 +709,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-சீரமைக்கப்பட்ட கல்வி மறுப்பு",
     trustDisclaimer: "\"இந்தக் கருவி பொதுவில் கிடைக்கக்கூடிய மியூச்சுவல் ஃபண்ட் தரவின் கடந்த கால செயல்திறனை பகுப்பாய்வு செய்கிறது. இது ஒரு கல்வி கருவி.\"",
     trustItems: [
-      { icon: "🔒", title: "பரிவர்த்தனை இல்லை", body: "FundWise உங்கள் சார்பாக எந்த முதலீட்டையும் வாங்க, விற்க அல்லது செயலாக்க முடியாது." },
+      { icon: "🔒", title: "பரிவர்த்தனை இல்லை", body: `${APP_NAME} உங்கள் சார்பாக எந்த முதலீட்டையும் வாங்க, விற்க அல்லது செயலாக்க முடியாது.` },
       { icon: "📊", title: "பொதுத் தரவு மட்டுமே", body: "அனைத்து நிதி தரவும் பொது NAV பதிவுகளிலிருந்து." },
       { icon: "🎓", title: "கல்வி மட்டுமே", body: "முதலீட்டு முடிவுகளை எடுக்கும் முன் SEBI-பதிவு செய்யப்பட்ட ஆலோசகரை கலந்தாலோசிக்கவும்." }
     ],
@@ -717,7 +718,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "முதல்முறை முதலீட்டாளர்களுக்கு உண்மையான உரையாடல் மூலம் மியூச்சுவல் ஃபண்டுகளை புரிந்துகொள்ள விரும்புவோருக்கு.",
     ctaButton: "இலவச ஆலோசனை தொடங்குக",
     ctaFooterInfo: "உள்நுழைவு தேவையில்லை · கல்வி மட்டுமே · முதலீட்டு பரிவர்த்தனை இல்லை",
-    footerCopy: "© 2025 FundWise · கல்வி ஆலோசனை தளம் · SEBI பதிவு செய்யப்பட்ட ஆலோசகர் அல்ல",
+    footerCopy: `© 2025 ${APP_NAME} · கல்வி ஆலோசனை தளம் · SEBI பதிவு செய்யப்பட்ட ஆலோசகர் அல்ல`,
     disclaimerBadge: "AI-ஆற்றல் • கல்விசார்",
     disclaimerTitlePart1: "முதலீட்டை நோக்கிய உங்கள் முதல் படி,",
     disclaimerTitlePart2: "AI வழிகாட்டுதலுடன்.",
@@ -846,7 +847,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-అనుగుణమైన విద్యా నిరాకరణ",
     trustDisclaimer: "\"ఈ సాధనం పబ్లిక్‌గా అందుబాటులో ఉన్న మ్యూచువల్ ఫండ్ డేటా యొక్క గత పనితీరును విశ్లేషిస్తుంది. ఇది విద్యా సాధనం.\"",
     trustItems: [
-      { icon: "🔒", title: "లావాదేవీలు లేవు", body: "FundWise మీ తరపున ఏ పెట్టుబడినైనా కొనుగోలు, అమ్మకం లేదా ప్రాసెస్ చేయలేదు." },
+      { icon: "🔒", title: "లావాదేవీలు లేవు", body: `${APP_NAME} మీ తరపున ఏ పెట్టుబడినైనా కొనుగోలు, అమ్మకం లేదా ప్రాసెస్ చేయలేదు.` },
       { icon: "📊", title: "పబ్లిక్ డేటా మాత్రమే", body: "అన్ని ఫండ్ డేటా పబ్లిక్ NAV రికార్డుల నుండి." },
       { icon: "🎓", title: "విద్యా మాత్రమే", body: "పెట్టుబడి నిర్ణయాలు తీసుకోవడానికి ముందు ఎల్లప్పుడూ SEBI-నమోదిత సలహాదారుని సంప్రదించండి." }
     ],
@@ -855,7 +856,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "నిజమైన సంభాషణ ద్వారా మ్యూచువల్ ఫండ్లను అర్థం చేసుకోవాలనుకునే మొదటిసారి పెట్టుబడిదారులకు.",
     ctaButton: "ఉచిత సలహా ప్రారంభించండి",
     ctaFooterInfo: "లాగిన్ అవసరం లేదు · విద్యా మాత్రమే · పెట్టుబడి లావాదేవీలు లేవు",
-    footerCopy: "© 2025 FundWise · విద్యా సలహా వేదిక · SEBI నమోదిత సలహాదారు కాదు",
+    footerCopy: `© 2025 ${APP_NAME} · విద్యా సలహా వేదిక · SEBI నమోదిత సలహాదారు కాదు`,
     disclaimerBadge: "AI-ఆధారిత • విద్యాపరమైన",
     disclaimerTitlePart1: "పెట్టుబడి దిశగా మీ మొదటి అడుగు,",
     disclaimerTitlePart2: "AI మార్గదర్శకత్వంలో.",
@@ -984,7 +985,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-سیدھ میں تعلیمی دستبرداری",
     trustDisclaimer: "\"یہ ٹول عوامی طور پر دستیاب میوچل فنڈ ڈیٹا کی ماضی کی کارکردگی کا تجزیہ کرتا ہے۔ یہ ایک تعلیمی ٹول ہے۔\"",
     trustItems: [
-      { icon: "🔒", title: "کوئی لین دین نہیں", body: "FundWise آپ کی طرف سے کوئی بھی سرمایہ کاری خرید، فروخت یا پروسیس نہیں کر سکتا۔" },
+      { icon: "🔒", title: "کوئی لین دین نہیں", body: `${APP_NAME} آپ کی طرف سے کوئی بھی سرمایہ کاری خرید، فروخت یا پروسیس نہیں کر سکتا۔` },
       { icon: "📊", title: "صرف عوامی ڈیٹا", body: "تمام فنڈ ڈیٹا عوامی NAV ریکارڈز سے۔" },
       { icon: "🎓", title: "صرف تعلیمی", body: "سرمایہ کاری کے فیصلے کرنے سے پہلے ہمیشہ SEBI-رجسٹرڈ مشیر سے مشورہ کریں۔" }
     ],
@@ -993,7 +994,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "پہلی بار سرمایہ کاروں کے لیے جو حقیقی گفتگو کے ذریعے میوچل فنڈز کو سمجھنا چاہتے ہیں۔",
     ctaButton: "مفت مشاورت شروع کریں",
     ctaFooterInfo: "کوئی لاگ ان ضروری نہیں · صرف تعلیمی · کوئی سرمایہ کاری لین دین نہیں",
-    footerCopy: "© 2025 FundWise · تعلیمی مشاورتی پلیٹ فارم · SEBI رجسٹرڈ مشیر نہیں",
+    footerCopy: `© 2025 ${APP_NAME} · تعلیمی مشاورتی پلیٹ فارم · SEBI رجسٹرڈ مشیر نہیں`,
     disclaimerBadge: "AI-طاقتور • تعلیمی",
     disclaimerTitlePart1: "سرمایہ کاری کی طرف آپ کا پہلا قدم،",
     disclaimerTitlePart2: "AI کی رہنمائی کے ساتھ۔",
@@ -1122,7 +1123,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-ਅਨੁਕੂਲ ਵਿੱਦਿਅਕ ਬੇਦਾਅਵਾ",
     trustDisclaimer: "\"ਇਹ ਟੂਲ ਜਨਤਕ ਤੌਰ 'ਤੇ ਉਪਲਬਧ ਮਿਉਚੁਅਲ ਫੰਡ ਡੇਟਾ ਦੀ ਪਿਛਲੀ ਕਾਰਗੁਜ਼ਾਰੀ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰਦਾ ਹੈ। ਇਹ ਇੱਕ ਵਿੱਦਿਅਕ ਟੂਲ ਹੈ।\"",
     trustItems: [
-      { icon: "🔒", title: "ਕੋਈ ਲੈਣ-ਦੇਣ ਨਹੀਂ", body: "FundWise ਤੁਹਾਡੀ ਤਰਫ਼ੋਂ ਕੋਈ ਵੀ ਨਿਵੇਸ਼ ਨਹੀਂ ਖਰੀਦ, ਵੇਚ ਜਾਂ ਪ੍ਰੋਸੈਸ ਕਰ ਸਕਦਾ।" },
+      { icon: "🔒", title: "ਕੋਈ ਲੈਣ-ਦੇਣ ਨਹੀਂ", body: `${APP_NAME} ਤੁਹਾਡੀ ਤਰਫ਼ੋਂ ਕੋਈ ਵੀ ਨਿਵੇਸ਼ ਨਹੀਂ ਖਰੀਦ, ਵੇਚ ਜਾਂ ਪ੍ਰੋਸੈਸ ਕਰ ਸਕਦਾ।` },
       { icon: "📊", title: "ਸਿਰਫ਼ ਜਨਤਕ ਡੇਟਾ", body: "ਸਭ ਫੰਡ ਡੇਟਾ ਜਨਤਕ NAV ਰਿਕਾਰਡਾਂ ਤੋਂ।" },
       { icon: "🎓", title: "ਸਿਰਫ਼ ਵਿੱਦਿਅਕ", body: "ਨਿਵੇਸ਼ ਫੈਸਲੇ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਹਮੇਸ਼ਾ SEBI-ਰਜਿਸਟਰਡ ਸਲਾਹਕਾਰ ਨਾਲ ਸਲਾਹ ਕਰੋ।" }
     ],
@@ -1131,7 +1132,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "ਪਹਿਲੀ ਵਾਰ ਨਿਵੇਸ਼ਕਾਂ ਲਈ ਜੋ ਅਸਲ ਗੱਲਬਾਤ ਰਾਹੀਂ ਮਿਉਚੁਅਲ ਫੰਡਾਂ ਨੂੰ ਸਮਝਣਾ ਚਾਹੁੰਦੇ ਹਨ।",
     ctaButton: "ਮੁਫ਼ਤ ਸਲਾਹ ਸ਼ੁਰੂ ਕਰੋ",
     ctaFooterInfo: "ਕੋਈ ਲੌਗਇਨ ਜ਼ਰੂਰੀ ਨਹੀਂ · ਸਿਰਫ਼ ਵਿੱਦਿਅਕ · ਕੋਈ ਨਿਵੇਸ਼ ਲੈਣ-ਦੇਣ ਨਹੀਂ",
-    footerCopy: "© 2025 FundWise · ਵਿੱਦਿਅਕ ਸਲਾਹਕਾਰ ਪਲੇਟਫਾਰਮ · SEBI ਰਜਿਸਟਰਡ ਸਲਾਹਕਾਰ ਨਹੀਂ",
+    footerCopy: `© 2025 ${APP_NAME} · ਵਿੱਦਿਅਕ ਸਲਾਹਕਾਰ ਪਲੇਟਫਾਰਮ · SEBI ਰਜਿਸਟਰਡ ਸਲਾਹਕਾਰ ਨਹੀਂ`,
     disclaimerBadge: "AI-ਸੰਚਾਲਿਤ • ਵਿੱਦਿਅਕ",
     disclaimerTitlePart1: "ਨਿਵੇਸ਼ ਵੱਲ ਤੁਹਾਡਾ ਪਹਿਲਾ ਕਦਮ,",
     disclaimerTitlePart2: "AI ਦੁਆਰਾ ਨਿਰਦੇਸ਼ਿਤ।",
@@ -1260,7 +1261,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-સંરેખિત શૈક્ષણિક અસ્વીકૃતિ",
     trustDisclaimer: "\"આ ટૂલ સાર્વજનિક રીતે ઉપલબ્ધ મ્યુચ્યુઅલ ફંડ ડેટાના ભૂતકાળના પ્રદર્શનનું વિશ્લેષણ કરે છે. આ શૈક્ષણિક ટૂલ છે.\"",
     trustItems: [
-      { icon: "🔒", title: "કોઈ વ્યવહાર નહીં", body: "FundWise તમારા વતી કોઈ રોકાણ ખરીદ, વેચ અથવા પ્રક્રિયા કરી શકે નહીં." },
+      { icon: "🔒", title: "કોઈ વ્યવહાર નહીં", body: `${APP_NAME} તમારા વતી કોઈ રોકાણ ખરીદ, વેચ અથવા પ્રક્રિયા કરી શકે નહીં.` },
       { icon: "📊", title: "માત્ર સાર્વજનિક ડેટા", body: "તમામ ફંડ ડેટા સાર્વજનિક NAV રેકોર્ડ્સ પરથી." },
       { icon: "🎓", title: "માત્ર શૈક્ષણિક", body: "રોકાણ નિર્ણય કરતા પહેલા હંમેશા SEBI-નોંધાયેલ સલાહકારની સલાહ લો." }
     ],
@@ -1269,7 +1270,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "પ્રથમ વખત રોકાણ કરનારા જેઓ વાસ્તવિક વાર્તાલાપ દ્વારા મ્યુચ્યુઅલ ફંડ સમજવા માંગે છે.",
     ctaButton: "મફત સલાહ શરૂ કરો",
     ctaFooterInfo: "કોઈ લૉગિન જરૂરી નથી · માત્ર શૈક્ષણિક · કોઈ રોકાણ વ્યવહાર નહીં",
-    footerCopy: "© 2025 FundWise · શૈક્ષણિક સલાહ પ્લેટફોર્મ · SEBI નોંધાયેલ સલાહકાર નથી",
+    footerCopy: `© 2025 ${APP_NAME} · શૈક્ષણિક સલાહ પ્લેટફોર્મ · SEBI નોંધાયેલ સલાહકાર નથી`,
     disclaimerBadge: "AI-સંચાલિત • શૈક્ષણિક",
     disclaimerTitlePart1: "રોકાણ તરફ તમારું પ્રથમ પગલું,",
     disclaimerTitlePart2: "AI દ્વારા માર્ગદર્શિત.",
@@ -1398,7 +1399,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-ಸಂರೇಖಿತ ಶೈಕ್ಷಣಿಕ ನಿರಾಕರಣೆ",
     trustDisclaimer: "\"ಈ ಉಪಕರಣ ಸಾರ್ವಜನಿಕವಾಗಿ ಲಭ್ಯ ಮ್ಯೂಚುಯಲ್ ಫಂಡ್ ಡೇಟಾದ ಹಿಂದಿನ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ವಿಶ್ಲೇಷಿಸುತ್ತದೆ. ಇದು ಶೈಕ್ಷಣಿಕ ಉಪಕರಣ.\"",
     trustItems: [
-      { icon: "🔒", title: "ವ್ಯವಹಾರಗಳಿಲ್ಲ", body: "FundWise ನಿಮ್ಮ ಪರವಾಗಿ ಯಾವ ಹೂಡಿಕೆಯನ್ನೂ ಖರೀದಿಸಲಾಗದು, ಮಾರಲಾಗದು." },
+      { icon: "🔒", title: "ವ್ಯವಹಾರಗಳಿಲ್ಲ", body: `${APP_NAME} ನಿಮ್ಮ ಪರವಾಗಿ ಯಾವ ಹೂಡಿಕೆಯನ್ನೂ ಖರೀದಿಸಲಾಗದು, ಮಾರಲಾಗದು.` },
       { icon: "📊", title: "ಸಾರ್ವಜನಿಕ ಡೇಟಾ ಮಾತ್ರ", body: "ಎಲ್ಲಾ ಫಂಡ್ ಡೇಟಾ ಸಾರ್ವಜನಿಕ NAV ದಾಖಲೆಗಳಿಂದ." },
       { icon: "🎓", title: "ಶಿಕ್ಷಣ ಮಾತ್ರ", body: "ಹೂಡಿಕೆ ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳುವ ಮೊದಲು SEBI-ನೋಂದಾಯಿತ ಸಲಹೆಗಾರರನ್ನು ಸಂಪರ್ಕಿಸಿ." }
     ],
@@ -1407,7 +1408,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "ನೈಜ ಸಂವಾದದ ಮೂಲಕ ಮ್ಯೂಚುಯಲ್ ಫಂಡ್‌ಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಬಯಸುವ ಮೊದಲ ಬಾರಿ ಹೂಡಿಕೆದಾರರಿಗೆ.",
     ctaButton: "ಉಚಿತ ಸಲಹೆ ಪ್ರಾರಂಭಿಸಿ",
     ctaFooterInfo: "ಲಾಗಿನ್ ಅಗತ್ಯವಿಲ್ಲ · ಶಿಕ್ಷಣ ಮಾತ್ರ · ಹೂಡಿಕೆ ವ್ಯವಹಾರಗಳಿಲ್ಲ",
-    footerCopy: "© 2025 FundWise · ಶೈಕ್ಷಣಿಕ ಸಲಹಾ ವೇದಿಕೆ · SEBI ನೋಂದಾಯಿತ ಸಲಹೆಗಾರ ಅಲ್ಲ",
+    footerCopy: `© 2025 ${APP_NAME} · ಶೈಕ್ಷಣಿಕ ಸಲಹಾ ವೇದಿಕೆ · SEBI ನೋಂದಾಯಿತ ಸಲಹೆಗಾರ ಅಲ್ಲ`,
     disclaimerBadge: "AI-ಚಾಲಿತ • ಶೈಕ್ಷಣಿಕ",
     disclaimerTitlePart1: "ಹೂಡಿಕೆಯತ್ತ ನಿಮ್ಮ ಮೊದಲ ಹೆಜ್ಜೆ,",
     disclaimerTitlePart2: "AI ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ.",
@@ -1536,7 +1537,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-സംരേഖിത വിദ്യാഭ്യാസ നിരാകരണം",
     trustDisclaimer: "\"ഈ ഉപകരണം പൊതുവായി ലഭ്യമായ മ്യൂച്വൽ ഫണ്ട് ഡേറ്റയുടെ മുൻ പ്രകടനം വിശകലനം ചെയ്യുന്നു. ഇത് ഒരു വിദ്യാഭ്യാസ ഉപകരണമാണ്.\"",
     trustItems: [
-      { icon: "🔒", title: "ഇടപാടുകൾ ഇല്ല", body: "FundWise നിങ്ങൾക്കു വേണ്ടി ഒരു നിക്ഷേപവും വാങ്ങുകയോ വിൽക്കുകയോ ചെയ്യില്ല." },
+      { icon: "🔒", title: "ഇടപാടുകൾ ഇല്ല", body: `${APP_NAME} നിങ്ങൾക്കു വേണ്ടി ഒരു നിക്ഷേപവും വാങ്ങുകയോ വിൽക്കുകയോ ചെയ്യില്ല.` },
       { icon: "📊", title: "പൊതു ഡേറ്റ മാത്രം", body: "എല്ലാ ഫണ്ട് ഡേറ്റയും പൊതു NAV രേഖകളിൽ നിന്ന്." },
       { icon: "🎓", title: "വിദ്യാഭ്യാസം മാത്രം", body: "നിക്ഷേപ തീരുമാനങ്ങൾ എടുക്കുന്നതിന് മുമ്പ് SEBI-രജിസ്ടേർഡ് ഉപദേഷ്ടാവിനെ ബന്ധപ്പെടൂ." }
     ],
@@ -1545,7 +1546,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "യഥാർത്ഥ സംഭാഷണത്തിലൂടെ മ്യൂച്വൽ ഫണ്ടുകൾ മനസ്സിലാക്കാൻ ആഗ്രഹിക്കുന്ന ആദ്യ നിക്ഷേപകർക്ക്.",
     ctaButton: "സൗജന്യ ഉപദേശം ആരംഭിക്കുക",
     ctaFooterInfo: "ലോഗിൻ ആവശ്യമില്ല · വിദ്യാഭ്യാസം മാത്രം · നിക്ഷേപ ഇടപാടുകൾ ഇല്ല",
-    footerCopy: "© 2025 FundWise · വിദ്യാഭ്യാസ ഉപദേശ പ്ലാറ്റ്‌ഫോം · SEBI രജിസ്ടേർഡ് ഉപദേഷ്ടാവ് അല്ല",
+    footerCopy: `© 2025 ${APP_NAME} · വിദ്യാഭ്യാസ ഉപദേശ പ്ലാറ്റ്‌ഫോം · SEBI രജിസ്ടേർഡ് ഉപദേഷ്ടാവ് അല്ല`,
     disclaimerBadge: "AI-അധിഷ്ഠിതം • വിദ്യാഭ്യാസം",
     disclaimerTitlePart1: "നിക്ഷേപത്തിലേക്കുള്ള നിങ്ങളുടെ ആദ്യ പടി,",
     disclaimerTitlePart2: "AI-യുടെ മാർഗനിർദ്ദേശത്തിൽ.",
@@ -1674,7 +1675,7 @@ export const TRANSLATIONS: Record<string, any> = {
     trustBadge: "SEBI-संरेखित शैक्षणिक अस्वीकरण",
     trustDisclaimer: "\"हे साधन सार्वजनिकरित्या उपलब्ध म्युच्युअल फंड डेटाच्या मागील कामगिरीचे विश्लेषण करते. हे एक शैक्षणिक साधन आहे.\"",
     trustItems: [
-      { icon: "🔒", title: "कोणतेही व्यवहार नाही", body: "FundWise तुमच्यासाठी कोणतीही गुंतवणूक खरेदी, विक्री किंवा प्रक्रिया करू शकत नाही." },
+      { icon: "🔒", title: "कोणतेही व्यवहार नाही", body: `${APP_NAME} तुमच्यासाठी कोणतीही गुंतवणूक खरेदी, विक्री किंवा प्रक्रिया करू शकत नाही.` },
       { icon: "📊", title: "केवळ सार्वजनिक डेटा", body: "सर्व फंड डेटा सार्वजनिक NAV रेकॉर्डमधून." },
       { icon: "🎓", title: "केवळ शैक्षणिक", body: "गुंतवणूक निर्णय घेण्यापूर्वी नेहमी SEBI-नोंदणीकृत सल्लागाराशी सल्लामसलत करा." }
     ],
@@ -1683,7 +1684,7 @@ export const TRANSLATIONS: Record<string, any> = {
     ctaSub: "पहिल्यांदा गुंतवणूक करणाऱ्यांसाठी जे वास्तविक संभाषणाद्वारे म्युच्युअल फंड समजून घेऊ इच्छितात.",
     ctaButton: "मोफत सल्लामसलत सुरू करा",
     ctaFooterInfo: "लॉगिन आवश्यक नाही · केवळ शैक्षणिक · कोणतेही गुंतवणूक व्यवहार नाही",
-    footerCopy: "© 2025 FundWise · शैक्षणिक सल्लागार व्यासपीठ · SEBI नोंदणीकृत सल्लागार नाही",
+    footerCopy: `© 2025 ${APP_NAME} · शैक्षणिक सल्लागार व्यासपीठ · SEBI नोंदणीकृत सल्लागार नाही`,
     disclaimerBadge: "AI-चालित • शैक्षणिक",
     disclaimerTitlePart1: "गुंतवणुकीच्या दिशेने तुमचे पहिले पाऊल,",
     disclaimerTitlePart2: "AI च्या मार्गदर्शनाखाली.",

@@ -5,6 +5,16 @@ export default {
   theme: {
     extend: {
       colors: {
+        'theme-bg': 'var(--bg-primary)',
+        'theme-secondary': 'var(--bg-secondary)',
+        'theme-elevated': 'var(--bg-elevated)',
+        'theme-text': 'var(--text-primary)',
+        'theme-text-secondary': 'var(--text-secondary)',
+        'theme-text-muted': 'var(--text-muted)',
+        'theme-border': 'var(--border-color)',
+        'theme-accent': 'var(--accent-primary)',
+        'theme-accent-hover': 'var(--accent-primary-hover)',
+        'theme-accent-soft': 'var(--accent-soft-bg)',
       },
       fontFamily: {
         sans:    ['Inter', 'system-ui', 'sans-serif'],

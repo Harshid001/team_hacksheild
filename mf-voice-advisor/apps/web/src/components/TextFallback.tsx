@@ -1,3 +1,4 @@
+import { APP_NAME } from '../config/constants'
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -94,9 +95,9 @@ export default function TextFallback({ onSend, disabled, orbState = 'idle' }: Pr
   }
 
   const statusText = isThinking
-    ? 'FundWise is thinking...'
+    ? `${APP_NAME} is thinking...`
     : isSpeaking
-      ? 'FundWise is speaking...'
+      ? `${APP_NAME} is speaking...`
       : isListening
         ? 'Listening...'
         : null

@@ -14,6 +14,31 @@
   *, *::before, *::after {
     box-sizing: border-box;
   }
+  :root {
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F8FAFC;
+    --bg-elevated: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+    --accent-primary: #2563EB;
+    --accent-primary-hover: #1D4ED8;
+    --accent-soft-bg: #EFF6FF;
+  }
+
+  .dark {
+    --bg-primary: #0B1220;
+    --bg-secondary: #0F172A;
+    --bg-elevated: #1E293B;
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --border-color: #334155;
+    --accent-primary: #3B82F6;
+    --accent-primary-hover: #60A5FA;
+    --accent-soft-bg: #1E3A5F;
+  }
 
   html {
     -webkit-font-smoothing: antialiased;
@@ -23,7 +48,7 @@
   }
 
   body {
-    @apply bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans;
+    @apply bg-theme-bg text-theme-text font-sans;
     min-height: 100vh;
     line-height: 1.75;
   }

@@ -1,3 +1,4 @@
+import { APP_NAME } from '../config/constants'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Props {
@@ -59,7 +60,7 @@ export default function ConversationBubble({ role, text, isTyping = false }: Pro
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="flex items-center gap-1.5 py-0.5"
-              aria-label="FundWise is typing"
+              aria-label={`${APP_NAME} is typing`}
             >
               <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0ms]" />
               <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:150ms]" />

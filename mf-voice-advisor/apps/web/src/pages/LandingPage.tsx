@@ -1,3 +1,4 @@
+import { APP_NAME } from '../config/constants'
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
@@ -43,9 +44,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="text-center">
-      <div className="font-display font-bold text-2xl text-slate-800 tabular-nums">{value}</div>
-      <div className="text-xs text-gray-500 font-medium mt-0.5">{label}</div>
-      {sub && <div className="text-[10px] text-gray-400">{sub}</div>}
+      <div className="font-display font-bold text-2xl text-theme-text tabular-nums">{value}</div>
+      <div className="text-xs text-theme-text-muted font-medium mt-0.5">{label}</div>
+      {sub && <div className="text-[10px] text-theme-text-muted opacity-80">{sub}</div>}
     </div>
   )
 }
@@ -211,28 +212,28 @@ export default function LandingPage() {
   const estimatedReturns = Math.max(0, futureValue - totalInvested)
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-blue-100 dark:selection:bg-blue-900/50 overflow-x-hidden w-full">
+    <div className="min-h-screen bg-theme-bg text-theme-text selection:bg-blue-100 dark:selection:bg-blue-900/50 overflow-x-hidden w-full">
 
       {/* ════════════════════════════════════════════════════════════
           NAV BAR
       ════════════════════════════════════════════════════════════ */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 shadow-sm">
+      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-sm text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-6">
           {/* Profile Logo & Wordmark */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <ProfileDropdown onLoginClick={() => navigate('/signup')} />
-            <span className="font-display font-bold text-base sm:text-lg text-slate-800 dark:text-white truncate">MF Advisor</span>
+            <span className="font-display font-bold text-base sm:text-lg text-white truncate">{APP_NAME}</span>
           </div>
 
           {/* Nav links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-gray-300">
-            <button onClick={() => scrollTo('how-it-works')} className="hover:text-slate-800 dark:hover:text-white transition-colors">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+            <button onClick={() => scrollTo('how-it-works')} className="hover:text-white transition-colors">
               {t.navHowItWorks}
             </button>
-            <button onClick={() => scrollTo('integrity')} className="hover:text-slate-800 dark:hover:text-white transition-colors">
+            <button onClick={() => scrollTo('integrity')} className="hover:text-white transition-colors">
               {t.navIntegrity}
             </button>
-            <button onClick={() => scrollTo('trust')} className="hover:text-slate-800 dark:hover:text-white transition-colors">
+            <button onClick={() => scrollTo('trust')} className="hover:text-white transition-colors">
               {t.navTrust}
             </button>
           </nav>
@@ -243,7 +244,7 @@ export default function LandingPage() {
             {/* ── Theme Toggle ── */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 dark:border-slate-700 text-gray-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-slate-800 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-slate-700 text-gray-400 hover:text-white hover:border-slate-500 bg-slate-800 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
@@ -261,7 +262,7 @@ export default function LandingPage() {
               <button
                 id="lang-dropdown-btn"
                 onClick={() => setLangOpen(prev => !prev)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-slate-800 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-slate-800 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 select-none"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold text-gray-300 hover:text-white hover:border-slate-500 bg-slate-800 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 select-none"
                 aria-haspopup="listbox"
                 aria-expanded={langOpen}
                 aria-label="Select language"
@@ -284,7 +285,7 @@ export default function LandingPage() {
                 <div
                   role="listbox"
                   aria-label="Language options"
-                  className="absolute right-0 mt-1.5 w-48 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1.5 overflow-hidden"
+                  className="absolute right-0 mt-1.5 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-xl z-50 py-1.5 overflow-hidden"
                   style={{ animation: 'fadeSlideDown 0.15s ease' }}
                 >
                   {LANGUAGES.map(l => (
@@ -298,8 +299,8 @@ export default function LandingPage() {
                       }}
                       className={`w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-xs transition-colors ${
                         lang === l.code
-                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 font-medium'
+                          ? 'bg-blue-900/30 text-blue-400 font-semibold'
+                          : 'text-gray-300 hover:bg-slate-800 font-medium'
                       }`}
                     >
                       <span className="text-base leading-none">{l.flag}</span>
@@ -318,7 +319,7 @@ export default function LandingPage() {
 
             <Link
               to="/start"
-              className="hidden sm:flex flex-shrink-0 items-center justify-center py-2 px-4 text-sm font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors active:scale-[0.98]"
+              className="hidden sm:flex flex-shrink-0 items-center justify-center py-2 px-4 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors active:scale-[0.98]"
             >
               {t.navStartButton}
             </Link>
@@ -412,7 +413,7 @@ export default function LandingPage() {
           STAT STRIP (Overlapping)
       ════════════════════════════════════════════════════════════ */}
       <section className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto -mt-16 sm:-mt-20 mb-16">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-800 py-8 px-6 sm:p-10 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-200 dark:divide-slate-800">
+        <div className="bg-theme-elevated rounded-2xl shadow-xl border border-theme-border py-8 px-6 sm:p-10 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-theme-border">
           <Stat label={t.statCategories} value="6+" />
           <Stat label={t.statPoints} value="10Y+" />
           <Stat label={t.statMetrics} value="5" sub="CAGR • Vol • Sharpe • MaxDD • Exp.R" />
@@ -423,14 +424,14 @@ export default function LandingPage() {
       {/* ════════════════════════════════════════════════════════════
           DATA INTEGRITY
       ════════════════════════════════════════════════════════════ */}
-      <section id="integrity" className="py-20 bg-slate-50 border-b border-gray-200">
+      <section id="integrity" className="py-20 bg-theme-secondary border-b border-theme-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeUp className="text-center mb-16">
             <SectionLabel>{t.integritySectionLabel}</SectionLabel>
-            <h2 className="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-display font-bold text-theme-text mb-4">
               {t.integrityTitle}
             </h2>
-            <p className="text-base text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base text-theme-text-secondary max-w-2xl mx-auto">
               {t.integritySub}
             </p>
           </FadeUp>
@@ -439,17 +440,17 @@ export default function LandingPage() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 lg:gap-8 max-w-5xl mx-auto relative">
               
               {/* Computed Data card */}
-              <div className="flex-1 bg-white border border-gray-200 shadow-xl shadow-blue-900/5 rounded-2xl p-6 lg:p-8 relative w-full z-10">
+              <div className="flex-1 bg-theme-elevated border border-theme-border shadow-xl shadow-blue-900/5 rounded-2xl p-6 lg:p-8 relative w-full z-10">
                 <div className="absolute -top-3 -right-3 rotate-3 bg-slate-900 text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-lg shadow-md border border-slate-700">
                   {t.integritySource}
                 </div>
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="bg-blue-100 text-blue-700 p-2.5 rounded-xl">
+                  <span className="bg-theme-accent-soft text-theme-accent p-2.5 rounded-xl">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" />
                     </svg>
                   </span>
-                  <h3 className="text-lg font-bold text-slate-900">{t.integrityBadgeComputed}</h3>
+                  <h3 className="text-lg font-bold text-theme-text">{t.integrityBadgeComputed}</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-3 lg:gap-4">
                   {[
@@ -460,9 +461,9 @@ export default function LandingPage() {
                     { l: t.integrityLabelExpr, v: '1.1%' },
                     { l: t.integrityLabelAum, v: t.integrityLabelAumVal },
                   ].map(m => (
-                    <div key={m.l} className="bg-slate-50/80 rounded-xl px-4 py-3 border border-slate-200/60">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{m.l}</p>
-                      <p className="font-display font-extrabold text-xl text-slate-900 tabular-nums mt-1">{m.v}</p>
+                    <div key={m.l} className="bg-theme-bg rounded-xl px-4 py-3 border border-theme-border">
+                      <p className="text-[10px] uppercase tracking-wider text-theme-text-muted font-bold">{m.l}</p>
+                      <p className="font-display font-extrabold text-xl text-theme-text tabular-nums mt-1">{m.v}</p>
                     </div>
                   ))}
                 </div>
@@ -471,33 +472,33 @@ export default function LandingPage() {
               {/* Connector */}
               <div className="flex flex-col items-center justify-center shrink-0 z-0">
                 <div className="hidden md:flex items-center relative w-12 lg:w-16">
-                  <div className="w-full h-0 border-t-2 border-dashed border-gray-300"></div>
-                  <div className="absolute left-1/2 -translate-x-1/2 bg-white border border-gray-200 text-gray-500 text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap">
+                  <div className="w-full h-0 border-t-2 border-dashed border-theme-border"></div>
+                  <div className="absolute left-1/2 -translate-x-1/2 bg-theme-bg border border-theme-border text-theme-text-muted text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap">
                     Interpreted By AI
                   </div>
                 </div>
                 <div className="md:hidden flex flex-col items-center justify-center my-4">
-                  <div className="bg-white border border-gray-200 text-gray-500 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm mb-2">
+                  <div className="bg-theme-bg border border-theme-border text-theme-text-muted text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm mb-2">
                     Interpreted By AI
                   </div>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 text-theme-text-muted opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                   </svg>
                 </div>
               </div>
 
               {/* AI Explanation card */}
-              <div className="flex-1 bg-violet-50/50 border border-violet-200 shadow-xl shadow-violet-900/5 rounded-2xl p-6 lg:p-8 relative w-full z-10">
+              <div className="flex-1 bg-theme-elevated border border-theme-border shadow-xl shadow-violet-900/5 rounded-2xl p-6 lg:p-8 relative w-full z-10">
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="bg-violet-100 text-violet-700 p-2.5 rounded-xl">
+                  <span className="bg-theme-accent-soft text-theme-accent p-2.5 rounded-xl">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                     </svg>
                   </span>
-                  <h3 className="text-lg font-bold text-slate-900">{t.integrityBadgeAi}</h3>
+                  <h3 className="text-lg font-bold text-theme-text">{t.integrityBadgeAi}</h3>
                 </div>
-                <div className="bg-white border border-violet-100 rounded-xl p-5 shadow-sm h-full">
-                  <p className="text-sm md:text-base text-slate-700 leading-relaxed italic">
+                <div className="bg-theme-bg border border-theme-border rounded-xl p-5 shadow-sm h-full">
+                  <p className="text-sm md:text-base text-theme-text-secondary leading-relaxed italic">
                     {t.integrityAiQuote}
                   </p>
                 </div>
@@ -508,22 +509,22 @@ export default function LandingPage() {
 
           {/* Tier 2: The Fine Print / Disclaimer */}
           <FadeUp delay={0.2} className="mt-12 max-w-4xl mx-auto">
-            <div className="bg-gray-100/60 border border-gray-200 rounded-2xl p-5 sm:p-6 space-y-4">
-              <div className="flex items-center gap-2 text-gray-600">
+            <div className="bg-theme-secondary border border-theme-border rounded-2xl p-5 sm:p-6 space-y-4">
+              <div className="flex items-center gap-2 text-theme-text-secondary">
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
                 <h3 className="font-display font-semibold text-xs uppercase tracking-widest">{t.trustBadge}</h3>
               </div>
-              <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
+              <p className="text-[11px] text-theme-text-muted leading-relaxed font-medium">
                 {t.trustDisclaimer}
               </p>
-              <div className="grid sm:grid-cols-3 gap-4 pt-3 border-t border-gray-200">
+              <div className="grid sm:grid-cols-3 gap-4 pt-3 border-t border-theme-border">
                 {t.trustItems.map((item: any, idx: number) => (
                   <div key={idx} className="space-y-1.5">
                     <span className="text-base" aria-hidden>{item.icon}</span>
-                    <p className="text-[10px] font-bold text-gray-700">{item.title}</p>
-                    <p className="text-[10px] text-gray-500 leading-relaxed">{item.body}</p>
+                    <p className="text-[10px] font-bold text-theme-text-secondary">{item.title}</p>
+                    <p className="text-[10px] text-theme-text-muted leading-relaxed">{item.body}</p>
                   </div>
                 ))}
               </div>
@@ -535,32 +536,32 @@ export default function LandingPage() {
       {/* ════════════════════════════════════════════════════════════
           PERFORMANCE CHART (Recharts)
       ════════════════════════════════════════════════════════════ */}
-      <section id="growth-simulator" className="py-20 bg-white border-b border-gray-200">
+      <section id="growth-simulator" className="py-20 bg-theme-bg border-b border-theme-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeUp>
             <div className="text-center mb-10">
               <SectionLabel>{t.calcSectionLabel}</SectionLabel>
-              <h2 className="text-2xl sm:text-4xl font-display font-bold text-slate-800 mb-3">
+              <h2 className="text-2xl sm:text-4xl font-display font-bold text-theme-text mb-3">
                 {t.calcTitle}
               </h2>
-              <p className="text-sm text-gray-600 max-w-xl mx-auto">
+              <p className="text-sm text-theme-text-secondary max-w-xl mx-auto">
                 {t.calcSub}
               </p>
             </div>
           </FadeUp>
 
           <FadeUp delay={0.1}>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden grid lg:grid-cols-12 gap-0">
+            <div className="bg-theme-elevated rounded-2xl border border-theme-border shadow-xl overflow-hidden grid lg:grid-cols-12 gap-0">
               
               {/* Left Column — Controls & Summary */}
-              <div className="lg:col-span-5 p-6 sm:p-8 bg-gray-50/50 border-r border-gray-200 flex flex-col justify-between space-y-6">
+              <div className="lg:col-span-5 p-6 sm:p-8 bg-theme-secondary/50 border-r border-theme-border flex flex-col justify-between space-y-6">
                 
                 {/* 1. Category Tabs */}
                 <div>
-                  <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block mb-3">
+                  <label className="text-xs font-bold text-theme-text uppercase tracking-wider block mb-3">
                     {t.calcLabelCategory}
                   </label>
-                  <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-200/50 rounded-xl border border-gray-200">
+                  <div className="grid grid-cols-3 gap-1.5 p-1 bg-theme-bg/50 rounded-xl border border-theme-border">
                     {Object.keys(categoryRates).map(cat => (
                       <button
                         key={cat}
@@ -570,8 +571,8 @@ export default function LandingPage() {
                         }}
                         className={`text-[10px] sm:text-xs font-semibold py-2.5 rounded-lg transition-all ${
                           selectedCategory === cat
-                            ? 'bg-white text-slate-800 shadow-sm border border-gray-300/30'
-                            : 'text-gray-600 hover:text-slate-800'
+                            ? 'bg-theme-elevated text-theme-text shadow-sm border border-theme-border'
+                            : 'text-theme-text-secondary hover:text-theme-text'
                         }`}
                       >
                         {cat === 'Large Cap Equity' 
@@ -582,7 +583,7 @@ export default function LandingPage() {
                       </button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-2 italic leading-relaxed">
+                  <p className="text-[11px] text-theme-text-muted mt-2 italic leading-relaxed">
                     {selectedCategory === 'Large Cap Equity'
                       ? (CALC_TRANSLATIONS[lang]?.descLargeCap || categoryRates[selectedCategory].desc)
                       : selectedCategory === 'Balanced Hybrid'
@@ -594,7 +595,7 @@ export default function LandingPage() {
 
                 {/* 2. SIP vs Lumpsum Toggle */}
                 <div>
-                  <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block mb-3">
+                  <label className="text-xs font-bold text-theme-text uppercase tracking-wider block mb-3">
                     {t.calcLabelMethod}
                   </label>
                   <div className="flex gap-2">
@@ -603,7 +604,7 @@ export default function LandingPage() {
                       className={`flex-1 font-semibold text-xs py-2 rounded-lg border transition-all ${
                         calcType === 'sip'
                           ? 'bg-slate-800 text-white border-slate-800'
-                          : 'bg-white text-gray-600 border-gray-200 hover:text-slate-800'
+                          : 'bg-theme-elevated text-theme-text-secondary border-theme-border hover:text-theme-text'
                       }`}
                     >
                       {t.calcLabelSip}
@@ -613,7 +614,7 @@ export default function LandingPage() {
                       className={`flex-1 font-semibold text-xs py-2 rounded-lg border transition-all ${
                         calcType === 'lumpsum'
                           ? 'bg-slate-800 text-white border-slate-800'
-                          : 'bg-white text-gray-600 border-gray-200 hover:text-slate-800'
+                          : 'bg-theme-elevated text-theme-text-secondary border-theme-border hover:text-theme-text'
                       }`}
                     >
                       {t.calcLabelLumpsum}
@@ -626,8 +627,8 @@ export default function LandingPage() {
                   {calcType === 'sip' ? (
                     <div>
                       <div className="flex justify-between items-center mb-1.5">
-                        <label className="text-xs font-semibold text-gray-600">{t.calcSipAmt}</label>
-                        <span className="font-display font-bold text-sm text-slate-800">₹{sipMonthly.toLocaleString('en-IN')}</span>
+                        <label className="text-xs font-semibold text-theme-text-secondary">{t.calcSipAmt}</label>
+                        <span className="font-display font-bold text-sm text-theme-text">₹{sipMonthly.toLocaleString('en-IN')}</span>
                       </div>
                       <input
                         type="range"
@@ -636,9 +637,9 @@ export default function LandingPage() {
                         step="1000"
                         value={sipMonthly}
                         onChange={(e) => setSipMonthly(Number(e.target.value))}
-                        className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        className="w-full h-1 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                       />
-                      <div className="flex justify-between text-[9px] text-gray-400 mt-1">
+                      <div className="flex justify-between text-[9px] text-theme-text-muted mt-1">
                         <span>₹1,000</span>
                         <span>₹50,000</span>
                       </div>
@@ -646,8 +647,8 @@ export default function LandingPage() {
                   ) : (
                     <div>
                       <div className="flex justify-between items-center mb-1.5">
-                        <label className="text-xs font-semibold text-gray-600">{t.calcLumpAmt}</label>
-                        <span className="font-display font-bold text-sm text-slate-800">₹{calcAmount.toLocaleString('en-IN')}</span>
+                        <label className="text-xs font-semibold text-theme-text-secondary">{t.calcLumpAmt}</label>
+                        <span className="font-display font-bold text-sm text-theme-text">₹{calcAmount.toLocaleString('en-IN')}</span>
                       </div>
                       <input
                         type="range"
@@ -656,9 +657,9 @@ export default function LandingPage() {
                         step="10000"
                         value={calcAmount}
                         onChange={(e) => setCalcAmount(Number(e.target.value))}
-                        className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        className="w-full h-1 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                       />
-                      <div className="flex justify-between text-[9px] text-gray-400 mt-1">
+                      <div className="flex justify-between text-[9px] text-theme-text-muted mt-1">
                         <span>₹10,000</span>
                         <span>₹10L</span>
                       </div>
@@ -667,8 +668,8 @@ export default function LandingPage() {
 
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
-                      <label className="text-xs font-semibold text-gray-600">{t.calcPeriod}</label>
-                      <span className="font-display font-bold text-sm text-slate-800">{calcPeriod} {calcPeriod === 1 ? t.calcPeriodYear : t.calcPeriodYears}</span>
+                      <label className="text-xs font-semibold text-theme-text-secondary">{t.calcPeriod}</label>
+                      <span className="font-display font-bold text-sm text-theme-text">{calcPeriod} {calcPeriod === 1 ? t.calcPeriodYear : t.calcPeriodYears}</span>
                     </div>
                     <input
                       type="range"
@@ -677,9 +678,9 @@ export default function LandingPage() {
                       step="1"
                       value={calcPeriod}
                       onChange={(e) => setCalcPeriod(Number(e.target.value))}
-                      className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      className="w-full h-1 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
-                    <div className="flex justify-between text-[9px] text-gray-400 mt-1">
+                    <div className="flex justify-between text-[9px] text-theme-text-muted mt-1">
                       <span>1 {t.calcPeriodYear}</span>
                       <span>15 {t.calcPeriodYears}</span>
                     </div>
@@ -713,8 +714,8 @@ export default function LandingPage() {
                 
                 {/* Dynamic Area Chart */}
                 <div className="h-64 sm:h-72 w-full mb-2">
-                  <p className="text-[11px] font-semibold text-gray-500 mb-4 px-2 uppercase tracking-wide">
-                    Compare <span className="text-slate-800 font-bold">{selectedCategory}</span> against alternatives
+                  <p className="text-[11px] font-semibold text-theme-text-secondary mb-4 px-2 uppercase tracking-wide">
+                    Compare <span className="text-theme-text font-bold">{selectedCategory}</span> against alternatives
                   </p>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 10, right: 4, left: 0, bottom: 0 }}>
@@ -795,7 +796,7 @@ export default function LandingPage() {
                 {/* Risk Metric Grid (Interactive Cards) */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-bold text-slate-900 uppercase tracking-widest block">
+                    <label className="text-[10px] font-bold text-theme-text uppercase tracking-widest block">
                       {t.calcMetricsLabel}
                     </label>
                     <span className="text-[9px] text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-bold">
@@ -816,11 +817,11 @@ export default function LandingPage() {
                         className={`text-left p-3 rounded-xl border transition-all ${
                           activeMetricDetail === m.id
                             ? 'bg-blue-50 border-blue-300 shadow-sm scale-102 ring-2 ring-blue-500/20'
-                            : 'bg-gray-50/50 hover:bg-gray-100/50 border-gray-200'
+                            : 'bg-theme-bg hover:bg-theme-elevated border-theme-border'
                         }`}
                       >
-                        <p className="text-[9px] uppercase tracking-wider text-gray-500 font-bold">{m.l}</p>
-                        <p className="font-display font-extrabold text-base text-slate-800 mt-1 tabular-nums">
+                        <p className="text-[9px] uppercase tracking-wider text-theme-text-muted font-bold">{m.l}</p>
+                        <p className="font-display font-extrabold text-base text-theme-text mt-1 tabular-nums">
                           {m.v}
                         </p>
                         <span className="text-[8px] text-blue-600 mt-1 block font-semibold hover:underline">
@@ -890,11 +891,11 @@ export default function LandingPage() {
       {/* ════════════════════════════════════════════════════════════
           THE PROBLEM
       ════════════════════════════════════════════════════════════ */}
-      <section className="py-20 bg-white border-b border-gray-200">
+      <section className="py-20 bg-theme-bg border-b border-theme-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeUp className="text-center mb-12">
             <SectionLabel>{t.problemSectionLabel}</SectionLabel>
-            <h2 className="text-2xl sm:text-3xl font-display font-semibold text-slate-800">
+            <h2 className="text-2xl sm:text-3xl font-display font-semibold text-theme-text">
               {t.problemTitle}
             </h2>
           </FadeUp>
@@ -904,8 +905,8 @@ export default function LandingPage() {
               <FadeUp key={item.title} delay={i * 0.1}>
                 <div className="feature-card">
                   <span className="text-3xl" aria-hidden>{item.icon}</span>
-                  <h3 className="font-display font-semibold text-slate-800 text-base">{item.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed flex-1">{item.body}</p>
+                  <h3 className="font-display font-semibold text-theme-text text-base">{item.title}</h3>
+                  <p className="text-sm text-theme-text-secondary leading-relaxed flex-1">{item.body}</p>
                 </div>
               </FadeUp>
             ))}
@@ -916,18 +917,18 @@ export default function LandingPage() {
       {/* ════════════════════════════════════════════════════════════
           HOW IT WORKS
       ════════════════════════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-20 bg-gray-50 border-b border-gray-200">
+      <section id="how-it-works" className="py-20 bg-theme-secondary border-b border-theme-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeUp className="text-center mb-14">
             <SectionLabel>{t.processSectionLabel}</SectionLabel>
-            <h2 className="text-2xl sm:text-3xl font-display font-semibold text-slate-800">
+            <h2 className="text-2xl sm:text-3xl font-display font-semibold text-theme-text">
               {t.processTitle}
             </h2>
           </FadeUp>
 
           <div className="grid md:grid-cols-3 gap-8 relative">
             {/* Connector line (desktop) */}
-            <div className="hidden md:block absolute top-9 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-px bg-gray-200 z-0" />
+            <div className="hidden md:block absolute top-9 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-px bg-theme-border z-0" />
 
             {[
               { step: '01', color: 'from-slate-700 to-slate-600' },
@@ -942,8 +943,8 @@ export default function LandingPage() {
                       <span className="font-display font-bold text-white text-lg">{meta.step}</span>
                     </div>
                     <div>
-                      <h3 className="font-display font-semibold text-slate-800 text-lg mb-2">{item.title}</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">{item.body}</p>
+                      <h3 className="font-display font-semibold text-theme-text text-lg mb-2">{item.title}</h3>
+                      <p className="text-sm text-theme-text-secondary leading-relaxed">{item.body}</p>
                       <p className="mt-3 text-[10px] font-semibold text-blue-600 uppercase tracking-widest">{item.tag}</p>
                     </div>
                   </div>
