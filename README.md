@@ -42,12 +42,7 @@ team_hacksheild/
    npm install
    ```
 
-2. **Environment Variables**
-   Ensure you have `.env` files set up in both `apps/api` and `apps/web`. Example variables:
-   - `apps/api/.env`: `PORT`, `MONGODB_URI`, `OPENAI_API_KEY`, `OLLAMA_BASE_URL` (points to the Ngrok tunnel if deployed), etc.
-   - `apps/web/.env`: `VITE_API_URL`, `VITE_SOCKET_URL`, etc.
-
-3. **Start the Tunnel (Optional)**
+2. **Start the Tunnel (Optional)**
    If you are running Ollama locally and want to expose it to the backend running elsewhere, start the tunnel from the root directory:
    ```cmd
    # Run visibly:
@@ -57,7 +52,7 @@ team_hacksheild/
    cscript run_hidden_tunnel.vbs
    ```
 
-4. **Development**
+3. **Development**
    Start both apps concurrently from `mf-voice-advisor`:
    ```bash
    # Terminal 1 - API

@@ -58,31 +58,6 @@ mf-voice-advisor/
 npm install
 ```
 
-### ⚙️ Environment Variables
-
-Create `.env` files in both `apps/api` and `apps/web`.
-
-**`apps/api/.env`**
-```env
-PORT=4000
-MONGODB_URI=mongodb://localhost:27017/mf-voice-advisor
-JWT_SECRET=your-super-secret-jwt-key
-JWT_REFRESH_SECRET=your-refresh-secret
-OPENAI_API_KEY=sk-...
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3
-CLIENT_URL=http://localhost:5173
-```
-
-**`apps/web/.env`**
-```env
-VITE_API_URL=http://localhost:4000
-VITE_GOOGLE_CLIENT_ID=your-google-client-id
-VITE_SOCKET_URL=http://localhost:4000
-```
-
 ### 🏃‍♂️ Development
 
 Start both apps concurrently from the root of `mf-voice-advisor`:
